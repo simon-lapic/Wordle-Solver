@@ -57,7 +57,6 @@ def sort_words(words:list, file_path:str):
 
     return indecies
 
-
 def main():
     sort_words(file_to_list(sys.argv[1]), sys.argv[2])
 

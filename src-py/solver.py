@@ -1,6 +1,6 @@
+import sorter
 
-
-def score(word:str, guess:str):
+def score_old(word:str, guess:str):
     '''
     Scores a guess based on the system for labeling a data, and returns that score as a float
     '''
@@ -20,3 +20,9 @@ def score(word:str, guess:str):
             S += float(correct[letter]) + (float(1/4-sum(correct.values())) if correct[letter] < counts[letter] else 0.0)
             
     return S
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
