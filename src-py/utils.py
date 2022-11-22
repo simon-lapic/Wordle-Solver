@@ -13,27 +13,29 @@ def progressbar(it, prefix="", size=60, out=sys.stdout):
 
 def file_to_list(file_path:str):
     '''Turns a file of comma-separated words into a python list'''
-    file = open(file_path, 'r')
-    l = file.readline().split(',')
-    file.close()
-
+    with open(file_path, 'r') as file:
+        l = file.readline().split(',')
     return l
 
 def list_to_file(file_path:str, l:list):
     '''Turns a list into a file'''
-    file = open(file_path, 'w')
-    for i in range(len(l)-1):
-        file.write(f'{l[i]},')
-    file.write(f'{l[len(l)-1]}')
-    file.close()
+    with open(file_path, 'w') as file:
+        for i in range(len(l)-1):
+            file.write(f'{l[i]},')
+        file.write(f'{l[len(l)-1]}')
 
 def append_list(file_path:str, l:list):
-    '''Appends a list to a file'''
-    file = open(file_path, 'a')
-    for i in range(len(l)-1):
-        file.write(f'{l[i]},')
-    file.write(f'{l[len(l)-1]}')
-    file.close()
+    '''Appends a list to a file on a new line'''
+    with open(file_path, 'a') as file:
+        file.write('\n')
+        for i in range(len(l)-1):
+            file.write(f'{l[i]},')
+        file.write(f'{l[len(l)-1]}')
+
+def empty_file(file_path:str):
+    '''Clears a file of its data'''
+    with open(file_path, 'w') as file:
+        file.write('')
 
 def sort_words(words:list):
     '''
@@ -51,6 +53,14 @@ def sort_words(words:list):
             sorted.append(words[i])
 
     return sorted
+
+def list_max(items:list):
+    '''Returns the maximum value of a list'''
+    max = items[0]
+    for item in items:
+        if item > max:
+            max = item
+    return max
 
 def main():
     sort_words(file_to_list(sys.argv[1]), sys.argv[2])

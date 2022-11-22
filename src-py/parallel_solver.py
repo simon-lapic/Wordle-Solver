@@ -6,19 +6,6 @@ NP = 1
 WORD_LIST = []
 GUESSES_FILE_PATH = '../data/parallel_solver_guess_list.txt'
 
-def set_words(word_list:list):
-    '''
-    Sets the WORD_LIST variable when serial_guesser is not the main file
-    '''
-    WORD_LIST = word_list
-
-def set_guesses_path(path:list):
-    '''
-    Sets the WORD_LIST variable when serial_guesser is not the main file
-    '''
-    GUESSES_FILE_PATH = path
-
-
 def OLD_score(word:str, guess:str):
     '''
     Scores a guess based on the system for labeling a data, and returns that score as a float
