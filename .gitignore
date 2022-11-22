@@ -1,3 +1,4 @@
 py-cache
-*guess_list.txt
+serial_solver_guess_list.txt
+parallel_solver_guess_list.txt
 test_words.txt

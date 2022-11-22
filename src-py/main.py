@@ -8,7 +8,7 @@ def main():
         if cmd == 'exit':
             break
         elif cmd == 'p':
-            print('parallel\n')
+            parallel_solver.main()
         elif cmd == 's':
             serial_solver.main()
         cmd = input("Enter 'P' for parallel or 'S' for serial (type 'EXIT' to exit): ").lower()

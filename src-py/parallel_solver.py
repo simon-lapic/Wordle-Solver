@@ -1,50 +1,67 @@
 import utils, sys
 from multiprocessing import Process, Queue
-from random import choice
 
 NP = 1
 WORD_LIST = []
-GUESSES_FILE_PATH = '../data/parallel_solver_guess_list.txt'
+GUESSES_FILE_PATH = r'C:\Users\simon\Desktop\Fall 2022\Parllel Programming\Wordle Solver\data\parallel_solver_guess_list.txt'#'../data/parallel_solver_guess_list.txt'
 
-def OLD_score(word:str, guess:str):
+def get_valid_guesses(solution:str, prev_guesses:list):
     '''
-    Scores a guess based on the system for labeling a data, and returns that score as a float
+    Gets a list of the valid guesses, which are words that conform to the the previous guesses.
+
+    Returns a list of strings, the valid guesses
     '''
-    S = 0.0
-
-    counts = {}
-    guessed = {}
-    correct = {}
-
-    for i in range(5):
-        counts[word[i]] = 1 if not word[i] in counts.keys() else counts[word[i]]+1
-        correct[word[i]] = (1 if not word[i] in correct.keys() else correct[word[i]]+1) if word[i] == guess[i] else 0
-        guessed[guess[i]] = 1 if not word[i] in guessed.keys() else guessed[word[i]]+1
-
-    for letter in guessed.keys():
-        if letter in word:
-            S += float(correct[letter]) + (float(1/4-sum(correct.values())) if correct[letter] < counts[letter] else 0.0)
-            
-    return S
-
-def get_valid_guesses(start:int, end:int, prev_guesses:list, queue:Queue):
-    pass
-
-def random_guess(prev_guesses:list):
-    '''
-    Makes a new guess at random, using only words still available after the previous guesses.
-
-    The available guesses are determined in parallel
-    '''
+    valid_guesses = []
+    global WORD_LIST, GUESSES_FILE_PATH
     
-    available = Queue()
+    known = '00000'
+    valid_chars = [chr(97+i) for i in range(26)]
+    
+    # Determine known letters and their positions (if applicable)
+    for guess in prev_guesses:
+        for i in range(5):
+            if guess[i] in valid_chars and not guess[i] in solution:
+                valid_chars.remove(guess[i])
+            if guess[i] == solution[i]:
+                known = known[:i] + guess[i] + known[i+1:]
+    
+    # Find the valid guesses
+    for i in range(len(WORD_LIST)): 
+        valid = True
+        for k in range(5):
+            if WORD_LIST[i][k] not in valid_chars:
+                valid = False
+            elif known[k] != '0' and WORD_LIST[i][k] != known[k]:
+                valid = False
+            
+        if valid:
+            valid_guesses.append(WORD_LIST[i])
+    
+    return valid_guesses
+
+def average_information(start:int, end:int, queue:Queue):
+    '''
+    Finds the average amount of information for a subset of the possible answers
+    '''
+    global WORD_LIST
+    local_eliminations = []
+    for i in range(start, end):
+        local_eliminations.append(len(get_valid_guesses(WORD_LIST[i], WORD_LIST)))
+    queue.put(local_eliminations)
+
+def get_information(word:str):
+    '''
+    Returns the percentage of possible answers a guess will eliminate, on average. Higher values mean that more information is gained, on average, by guessing the word 
+    '''
+    eliminations = []
+    queue = Queue()
     processes = []
 
     for i in range(NP):
-        start_idx = i * (len(WORD_LIST) // NP)
-        end_idx = (i+1) * (len(WORD_LIST) // NP)
+        start_index = i * len(WORD_LIST) // NP
+        end_index = (i + 1) * len(WORD_LIST) // NP
 
-        process = Process(target=get_valid_guesses, args=(start_idx, end_idx, prev_guesses, available))
+        process = Process(target=average_information, args=(start_index, end_index, queue))
         processes.append(process)
     
     for i in range(len(processes)):
@@ -52,35 +69,47 @@ def random_guess(prev_guesses:list):
     
     for i in range(len(processes)):
         processes[i].join()
+    
+    sum = 0
+    for i in range(NP):
+        sum += queue.get()
+    
+    return sum(eliminations)/len(eliminations)/len(eliminations)
 
-    return choice(available)
+def informed_guess(solution:str, prev_guesses:list):
+    '''
+    Makes a new guess bassed on how much information it is expected to generate, using only words still available after the previous guesses. When a guess is made, the words being chosen from are added on a new line to the specified file
 
-
+    returns a string, the guessed word
+    '''
+    global WORD_LIST, GUESSES_FILE_PATH
+    WORD_LIST = get_valid_guesses(solution, prev_guesses)
+    utils.append_list(GUESSES_FILE_PATH, WORD_LIST)
+    information_values = [get_information(word) for word in WORD_LIST]
+    return WORD_LIST[information_values.index(utils.list_max(information_values))]
 
 def main():
     global WORD_LIST, NP
-    path = sys.argv[1]
-    if sys.argv[2]:
-        NP = sys.argv[2]
+    if len(sys.argv) > 2:
+        NP = int(sys.argv[2])
 
+    path = r'C:\Users\simon\Desktop\Fall 2022\Parllel Programming\Wordle Solver\data\test_words.txt' # sys.argv[1]
     WORD_LIST = utils.sort_words(utils.file_to_list(path))
 
     solution = input("Enter a word for the bot to guess: ")
     guesses = []
 
-    cmd = input("Would you like the bot to guess randomly (R) or by ")
+    print("The bot will make informed guesses:")
 
     print("\n\n")
     while True:
-        guesses.append(random_guess(solution, guesses))
+        guesses.append(informed_guess(solution, guesses))
         if len(guesses) == 7:
             print("FAILED. Further guesses below:\n")
         print(f'{guesses[-1]}\n')
         if guesses[-1] == solution:
             print(f"SOLVED in {len(guesses)} guesses\n")
             break
-
-    
 
 if __name__ == "__main__":
     main()

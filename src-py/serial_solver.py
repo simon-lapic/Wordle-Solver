@@ -49,13 +49,14 @@ def random_guess(solution:str, prev_guesses:list):
     utils.append_list(GUESSES_FILE_PATH, WORD_LIST)
     return choice(WORD_LIST)
 
-def get_information(word:str):
+def get_information(word:str, prev_guesses:list):
     '''
     Determines how many possible guesses would be eliminated, on average, from the wordlist by a given guess. The result is returned as a float
     '''
     eliminations = []
+    prev_guesses.append(word)
     for potential_solution in WORD_LIST:
-        eliminations.append(len(get_valid_guesses(potential_solution, WORD_LIST)))
+        eliminations.append(len(get_valid_guesses(potential_solution, prev_guesses)))
     return sum(eliminations)/len(eliminations)/len(eliminations)
 
 def informed_guess(solution:str, prev_guesses:list):
@@ -67,7 +68,7 @@ def informed_guess(solution:str, prev_guesses:list):
     global WORD_LIST, GUESSES_FILE_PATH
     WORD_LIST = get_valid_guesses(solution, prev_guesses)
     utils.append_list(GUESSES_FILE_PATH, WORD_LIST)
-    information_values = [get_information(word) for word in WORD_LIST]
+    information_values = [get_information(word, prev_guesses) for word in WORD_LIST]
     return WORD_LIST[information_values.index(utils.list_max(information_values))]
 
 def main():
@@ -86,21 +87,31 @@ def main():
                 guesses.append(random_guess(solution, guesses))
                 if len(guesses) == 7:
                     print("FAILED. Further guesses below:")
-                print(f'{guesses[-1]} ({len(WORD_LIST)} possibilities)\n')
+                print(f'{guesses[-1]} (random out of {len(WORD_LIST)} possibilities)\n')
                 if guesses[-1] == solution:
                     print(f"SOLVED in {len(guesses)} guesses\n")
                     break
             break
         elif cmd == 'i':
+            num = int(input("How many leading random guesses should be made (this drastically improves the speed for the serial version)? "))
+            solved = False
             print("Guessing informedly...\n\n")
-            while True:
-                guesses.append(informed_guess(solution, guesses))
-                if len(guesses) == 7:
+            for i in range(num):
+                guesses.append(random_guess(solution, guesses))
+                if len(guesses) == 7-num:
                     print("FAILED. Further guesses below:")
-                print(f'{guesses[-1]} ({len(WORD_LIST)} possibilities)\n')
+                print(f'{guesses[-1]} (random out of {len(WORD_LIST)} possibilities)\n')
                 if guesses[-1] == solution:
                     print(f"SOLVED in {len(guesses)} guesses\n")
-                    break
+                    solved = True
+            while not solved:
+                guesses.append(informed_guess(solution, guesses))
+                if len(guesses) == 7-num:
+                    print("FAILED. Further guesses below:")
+                print(f'{guesses[-1]} (chosen from {len(WORD_LIST)} possibilities)\n')
+                if guesses[-1] == solution:
+                    print(f"SOLVED in {len(guesses)} guesses\n")
+                    solved = True
             break
         elif cmd == 'exit':
             break

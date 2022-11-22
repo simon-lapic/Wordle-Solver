@@ -22,7 +22,7 @@ def list_to_file(file_path:str, l:list):
     with open(file_path, 'w') as file:
         for i in range(len(l)-1):
             file.write(f'{l[i]},')
-        file.write(f'{l[len(l)-1]}')
+        file.write(f'{l[-1]}')
 
 def append_list(file_path:str, l:list):
     '''Appends a list to a file on a new line'''
@@ -30,7 +30,7 @@ def append_list(file_path:str, l:list):
         file.write('\n')
         for i in range(len(l)-1):
             file.write(f'{l[i]},')
-        file.write(f'{l[len(l)-1]}')
+        file.write(f'{l[-1]}')
 
 def empty_file(file_path:str):
     '''Clears a file of its data'''
