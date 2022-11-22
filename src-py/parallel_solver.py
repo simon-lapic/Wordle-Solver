@@ -1,4 +1,4 @@
-import sorter, sys
+import utils, sys
 from multiprocessing import Process, Queue
 from random import choice
 
@@ -71,10 +71,27 @@ def random_guess(prev_guesses:list):
 
 
 def main():
+    global WORD_LIST, NP
+    path = sys.argv[1]
     if sys.argv[2]:
         NP = sys.argv[2]
-    
-    sorter.sort_words(sorter.file_to_list(sys.argv[1]), '../data/solver_word_list.txt')
+
+    WORD_LIST = utils.sort_words(utils.file_to_list(path))
+
+    solution = input("Enter a word for the bot to guess: ")
+    guesses = []
+
+    cmd = input("Would you like the bot to guess randomly (R) or by ")
+
+    print("\n\n")
+    while True:
+        guesses.append(random_guess(solution, guesses))
+        if len(guesses) == 7:
+            print("FAILED. Further guesses below:\n")
+        print(f'{guesses[-1]}\n')
+        if guesses[-1] == solution:
+            print(f"SOLVED in {len(guesses)} guesses\n")
+            break
 
     
 

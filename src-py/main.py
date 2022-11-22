@@ -1,7 +1,8 @@
 import serial_solver, parallel_solver
+import time
 
 def main():
-    cmd = input("Run in parallel (P) or serial (S)? ").lower()
+    cmd = input("Run in parallel (P) or serial (S)? (type 'EXIT' to exit) ").lower()
     
     while True:
         if cmd == 'exit':
@@ -9,8 +10,8 @@ def main():
         elif cmd == 'p':
             print('parallel\n')
         elif cmd == 's':
-            print('serial\n')
-        cmd = input("Enter 'P' for parallel or 'S' for serial: ").lower()
+            serial_solver.main()
+        cmd = input("Enter 'P' for parallel or 'S' for serial (type 'EXIT' to exit): ").lower()
 
 if __name__ == "__main__":
     main()
