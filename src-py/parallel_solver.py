@@ -1,9 +1,9 @@
-import utils, sys
+import utils, sys, time
 from multiprocessing import Process, Queue
 
 NP = 1
 WORD_LIST = []
-GUESSES_FILE_PATH = r'C:\Users\simon\Desktop\Fall 2022\Parllel Programming\Wordle Solver\data\parallel_solver_guess_list.txt'#'../data/parallel_solver_guess_list.txt'
+GUESSES_FILE_PATH = '../data/parallel_solver_guess_list.txt'
 
 def get_valid_guesses(solution:str, prev_guesses:list):
     '''
@@ -39,29 +39,29 @@ def get_valid_guesses(solution:str, prev_guesses:list):
     
     return valid_guesses
 
-def average_information(start:int, end:int, queue:Queue):
+def average_information(prev_guesses:list, start:int, end:int, queue:Queue):
     '''
     Finds the average amount of information for a subset of the possible answers
     '''
     global WORD_LIST
     local_eliminations = []
     for i in range(start, end):
-        local_eliminations.append(len(get_valid_guesses(WORD_LIST[i], WORD_LIST)))
-    queue.put(local_eliminations)
+        local_eliminations.append(len(get_valid_guesses(WORD_LIST[i], prev_guesses)))
+    queue.put(sum(local_eliminations)/len(local_eliminations))
 
-def get_information(word:str):
+def get_information(word:str, prev_guesses:list):
     '''
     Returns the percentage of possible answers a guess will eliminate, on average. Higher values mean that more information is gained, on average, by guessing the word 
     '''
-    eliminations = []
     queue = Queue()
     processes = []
 
+    prev_guesses.append(word)
     for i in range(NP):
         start_index = i * len(WORD_LIST) // NP
         end_index = (i + 1) * len(WORD_LIST) // NP
 
-        process = Process(target=average_information, args=(start_index, end_index, queue))
+        process = Process(target=average_information, args=(prev_guesses, start_index, end_index, queue))
         processes.append(process)
     
     for i in range(len(processes)):
@@ -74,7 +74,7 @@ def get_information(word:str):
     for i in range(NP):
         sum += queue.get()
     
-    return sum(eliminations)/len(eliminations)/len(eliminations)
+    return sum/NP/len(WORD_LIST)
 
 def informed_guess(solution:str, prev_guesses:list):
     '''
@@ -85,7 +85,7 @@ def informed_guess(solution:str, prev_guesses:list):
     global WORD_LIST, GUESSES_FILE_PATH
     WORD_LIST = get_valid_guesses(solution, prev_guesses)
     utils.append_list(GUESSES_FILE_PATH, WORD_LIST)
-    information_values = [get_information(word) for word in WORD_LIST]
+    information_values = [get_information(word, prev_guesses) for word in WORD_LIST]
     return WORD_LIST[information_values.index(utils.list_max(information_values))]
 
 def main():
@@ -93,8 +93,8 @@ def main():
     if len(sys.argv) > 2:
         NP = int(sys.argv[2])
 
-    path = r'C:\Users\simon\Desktop\Fall 2022\Parllel Programming\Wordle Solver\data\test_words.txt' # sys.argv[1]
-    WORD_LIST = utils.sort_words(utils.file_to_list(path))
+    path = sys.argv[1]
+    WORD_LIST = utils.file_to_list(path)
 
     solution = input("Enter a word for the bot to guess: ")
     guesses = []
@@ -103,10 +103,12 @@ def main():
 
     print("\n\n")
     while True:
+        start_time = time.time()
         guesses.append(informed_guess(solution, guesses))
+        end_time = time.time()
         if len(guesses) == 7:
             print("FAILED. Further guesses below:\n")
-        print(f'{guesses[-1]}\n')
+        print(f'{guesses[-1]} (chosen from {len(WORD_LIST)} possibilities, guess made in {(start_time-end_time)/60} minutes)\n')
         if guesses[-1] == solution:
             print(f"SOLVED in {len(guesses)} guesses\n")
             break

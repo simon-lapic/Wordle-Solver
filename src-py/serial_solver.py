@@ -1,4 +1,4 @@
-import utils, sys
+import utils, sys, time
 from random import choice
 
 WORD_LIST = []
@@ -84,10 +84,12 @@ def main():
         if cmd == 'r':
             print("Guessing randomly...\n\n")
             while True:
+                start_time = time.time()
                 guesses.append(random_guess(solution, guesses))
+                end_time = time.time()
                 if len(guesses) == 7:
                     print("FAILED. Further guesses below:")
-                print(f'{guesses[-1]} (random out of {len(WORD_LIST)} possibilities)\n')
+                print(f'{guesses[-1]} (random out of {len(WORD_LIST)} possibilities, guess made in {(start_time-end_time)/60} minutes)\n')
                 if guesses[-1] == solution:
                     print(f"SOLVED in {len(guesses)} guesses\n")
                     break
@@ -97,18 +99,22 @@ def main():
             solved = False
             print("Guessing informedly...\n\n")
             for i in range(num):
+                start_time = time.time()
                 guesses.append(random_guess(solution, guesses))
-                if len(guesses) == 7-num:
+                end_time = time.time()
+                if len(guesses) == 7:
                     print("FAILED. Further guesses below:")
-                print(f'{guesses[-1]} (random out of {len(WORD_LIST)} possibilities)\n')
+                print(f'{guesses[-1]} (random out of {len(WORD_LIST)} possibilities, guess made in {(start_time-end_time)/60} minutes)\n')
                 if guesses[-1] == solution:
                     print(f"SOLVED in {len(guesses)} guesses\n")
                     solved = True
             while not solved:
+                start_time = time.time()
                 guesses.append(informed_guess(solution, guesses))
+                end_time = time.time()
                 if len(guesses) == 7-num:
                     print("FAILED. Further guesses below:")
-                print(f'{guesses[-1]} (chosen from {len(WORD_LIST)} possibilities)\n')
+                print(f'{guesses[-1]} (chosen from {len(WORD_LIST)} possibilities, guess made in {(start_time-end_time)/60} minutes)\n')
                 if guesses[-1] == solution:
                     print(f"SOLVED in {len(guesses)} guesses\n")
                     solved = True
