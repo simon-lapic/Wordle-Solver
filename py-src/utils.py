@@ -1,10 +1,11 @@
 import sys
+from random import choice
 
 def progressbar(it, prefix="", size=60, out=sys.stdout):
     count = len(it)
     def show(j):
         x = int(size*j/count)
-        print("{}[{}{}] {}/{}".format(prefix, "#"*x, "."*(size-x), j, count), end='\r', file=out, flush=True)
+        print(f"{prefix}[{'#'*x}{'.'*(size-x)}] ({100*j//count}%)", end='\r', file=out, flush=True)
     show(0)
     for i, item in enumerate(it):
         yield item
@@ -62,8 +63,17 @@ def list_max(items:list):
             max = item
     return max
 
+def random_selection(items:list, n:int):
+    '''Returns random subset of the specified list with a size of n'''
+    subset = []
+    for i in range(n):
+        subset.append(choice(items))
+        items.remove(subset[i])
+    return subset
+
 def main():
-    sort_words(file_to_list(sys.argv[1]), sys.argv[2])
+    sort_words(file_to_list('../data/wordle_words.txt'))
+    # list_to_file('../data/test_words.txt', random_selection(file_to_list('../data/wordle_words.txt'), int(sys.argv[1])))
 
 if __name__ == "__main__":
     main()
