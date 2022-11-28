@@ -5,3 +5,4 @@ test_words.txt
 __pycache__
 attempt-*
 .vscode
+build
