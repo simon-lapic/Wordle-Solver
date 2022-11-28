@@ -1,11 +1,15 @@
-import sys
+import sys, time
 from random import choice
 
 def progressbar(it, prefix="", size=60, out=sys.stdout):
-    count = len(it)
+    '''
+    Creates a progress bar to show that a function is progressing. To use, replace the 'range()' in a for-loop with a 
+    declaration of this function
+    '''
+    count = max(len(it), 1)
     def show(j):
         x = int(size*j/count)
-        print(f"{prefix}[{'#'*x}{'.'*(size-x)}] ({100*j//count}%)", end='\r', file=out, flush=True)
+        print(f"{prefix}[{'#'*x}{'.'*(size-x)}] ({round(100*j/count, 4)}%)", end='\r', file=out, flush=True)
     show(0)
     for i, item in enumerate(it):
         yield item
@@ -33,25 +37,27 @@ def append_list(file_path:str, l:list):
             file.write(f'{l[i]},')
         file.write(f'{l[-1]}')
 
-def empty_file(file_path:str):
-    '''Clears a file of its data'''
+def write_csv(file_path:str, *columns):
+    '''Creates a csv file from any number of lists. The lists should all be of the same size'''
     with open(file_path, 'w') as file:
-        file.write('')
+        for i in range(len(columns[0])):
+            line = ''
+            for c in columns:
+                line += f'{c[i]},'
+            file.write(line + '\n')
 
-def sort_words(words:list):
-    '''
-    Sorts a list of words alphabetically
-    '''
-    sorted = [words[0]]
-    for i in progressbar(range(len(words)), "Sorting Words: ", 75):
+def sort(items:list):
+    '''Sorts a list from least to greatest'''
+    sorted = [items[0]]
+    for i in progressbar(range(len(items)), "Sorting: ", 75):
         inserted = False
         for k in range(len(sorted)):
-            if words[i] < sorted[k]:
-                sorted.insert(k, words[i])
+            if items[i] < sorted[k]:
+                sorted.insert(k, items[i])
                 inserted = True
                 break
         if not inserted: 
-            sorted.append(words[i])
+            sorted.append(items[i])
 
     return sorted
 
@@ -71,9 +77,19 @@ def random_selection(items:list, n:int):
         items.remove(subset[i])
     return subset
 
+def timer(func):
+    '''A function wrapper which causes the function to return the amount of time it took to execture'''
+    def timed_func(*args, **kwargs):
+        start = time.time()
+        func(*args, **kwargs)
+        end = time.time()
+        return end-start
+    return timed_func
+
 def main():
-    sort_words(file_to_list('../data/wordle_words.txt'))
-    # list_to_file('../data/test_words.txt', random_selection(file_to_list('../data/wordle_words.txt'), int(sys.argv[1])))
+    print('Selecting a test sample...')
+    list_to_file('../data/test_words.txt', random_selection(file_to_list('../data/wordle_words.txt'), int(sys.argv[1])))
+    print('Test File generated.')
 
 if __name__ == "__main__":
     main()

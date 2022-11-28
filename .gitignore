@@ -4,3 +4,4 @@ parallel_solver_guess_list.txt
 test_words.txt
 __pycache__
 attempt-*
+.vscode
