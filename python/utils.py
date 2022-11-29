@@ -19,7 +19,7 @@ def progressbar(it, prefix="", size=60, out=sys.stdout):
 def file_to_list(file_path:str):
     '''Turns a file of comma-separated words into a python list'''
     with open(file_path, 'r') as file:
-        l = file.readline().split(',')
+        l = file.readlines()
     return l
 
 def list_to_file(file_path:str, l:list):
@@ -28,6 +28,17 @@ def list_to_file(file_path:str, l:list):
         for i in range(len(l)-1):
             file.write(f'{l[i]},')
         file.write(f'{l[-1]}')
+
+def standardize_file(file_path:str):
+    '''Replaces all commas with line breaks'''
+    new_file = ""
+    with open(file_path, 'r') as file:
+        data = file.readlines()
+        for line in data:
+            for word in line.split(','):
+                new_file += f'{word}\n'
+    with open(file_path, 'w') as file:
+        file.write(new_file)
 
 def append_list(file_path:str, l:list):
     '''Appends a list to a file on a new line'''
@@ -87,9 +98,12 @@ def timer(func):
     return timed_func
 
 def main():
-    print('Selecting a test sample...')
-    list_to_file('../data/test_words.txt', random_selection(file_to_list('../data/wordle_words.txt'), int(sys.argv[1])))
-    print('Test File generated.')
+    # print('Selecting a test sample...')
+    # list_to_file('../data/test_words.txt', random_selection(file_to_list('../data/wordle_words.txt'), int(sys.argv[1])))
+    # print('Test File generated.')
+
+    print('Re-Writing word list...')
+    standardize_file('../data/wordle_words.txt')
 
 if __name__ == "__main__":
     main()
