@@ -2,6 +2,7 @@
 #include <time.h>
 #include <cstdlib>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -16,8 +17,8 @@
  * known. The count for a letter is set to -1 if it is known that that letter is not in the solution
  */
 struct Knowledge {
-    char positions[5];
-    short letter_counts[26] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    char state[5];
+    short letter_counts[26];
 };
 
 /**
@@ -33,9 +34,8 @@ std::vector<std::string> get_word_list(std::string path, int count=256) {
 
     std::ifstream file(path);
     std::string word;
-    int n = count;
     while (getline(file, word) && count > 0) {
-        output[n-count] = word;
+        output.push_back(word);
         count--;
     }
 
@@ -58,24 +58,44 @@ bool validate(std::string word) {
 }
 
 /**
- * @brief Updates the given Knowledge struct with new information including a new guess. The information will only be updated if
- * a valid guess is passed. If an invalid guess has passed, it throws an exception
+ * @brief Updates the given Knowledge struct with new information gained from a new guess. This method assumes that the 
+ * solution is known to the user and the bot is running automatically. Otherwise, the Knowledge needs to be updated manually
  * 
- * @param info Knowledge&, the information to update
+ * @param known Knowledge&, the information to update
  * @param guess std::string, the new guess to get more information from
+ * @param solution std::string, the solution being used at the moment
  */
-void update_information(Knowledge& info, std::string guess) {
-    if (!validate(guess))
-        throw(guess);
-    
+void update_knowledge(Knowledge& known, std::string guess, std::string solution) {
+    for (int i = 0; i<5; i++) {
+        int count = 0;
+        bool found = false;
+        for (int j = 0; j<5; j++) {
+            if (guess.at(i) == solution.at(j)) { // Finding the counts gotten from the guess
+                count++;
+                found = true;
+                if (i == j) { // Update the state where necessary
+                    known.state[i] = guess.at(i);
+                }
+            }
+        }
+
+        // Update the letter counts if necessary
+        if (known.letter_counts[int(guess.at(i))-97] < count) {
+            known.letter_counts[int(guess.at(i))-97] = count;
+        }
+
+        if (!found) {
+            known.letter_counts[int(guess.at(i))-97] = -1;
+        }
+    }
 }
 
 /**
- * @brief Makes a guess for the solution at random
+ * @brief Kernel function to get the expected information of a particular word
  * 
- * @return std::string, The randomly-made guess
+ * @param word_list char**, the list of words 
  */
-std::string make_random_guess() {
+__global__ void get_expected_information(char** word_list) {
 
 }
 
@@ -83,15 +103,64 @@ std::string make_random_guess() {
  * @brief Makes a guess for the solution based on the amount of information that can be expected to be found by making the guess.
  * The expected information value for each 
  * 
+ * @param word_list std::vector<std::string>, the list of words to guess from
  * @return std::string 
  */
-std::string make_best_guess() {
+std::string make_best_guess(std::vector<std::string> word_list) {
+    return "";
+}
 
+/**
+ * @brief Makes a guess for the solution at random
+ * 
+ * @param word_list std::vector<std::string>, the list of words to guess from
+ * @return std::string, The randomly-made guess
+ */
+std::string make_random_guess(std::vector<std::string> word_list) {
+    return word_list[std::rand() % word_list.size()];
+}
+
+/**
+ * @brief Prints a guess using the appropriate colors based on what information is known. A letter appears yellow if it appears in
+ * the word but not at that position and green if it is at that position, otherwie gray if the letter is not in the word
+ * 
+ * @param known Knowledge, the knowledge known at the point the guess was made
+ * @param guess std::string, the guess to print
+ */
+void print_guess(Knowledge known, std::string guess) {
+    for (int i = 0; i<guess.size(); i++) {
+        if (guess.at(i) == known.state[i]) {
+            known.letter_counts[int(guess.at(i))-97]--;
+        }
+    }
+    
+    for (int i = 0; i<guess.size(); i++) {
+        if (guess.at(i) == known.state[i]) {
+            std::cout << "\x1B[32m" << guess.at(i) << "\033[0m"; // ANSI Green
+        } else if (known.letter_counts[int(guess.at(i))-97] > 0) {
+            known.letter_counts[int(guess.at(i))-97]--;
+            std::cout << "\x1B[33m" << guess.at(i) << "\033[0m"; // ANSI Yellow
+        } else {
+            std::cout << guess.at(i);
+        }
+        std::cout << " ";
+    }
+
+    std::cout << std::endl;
 }
 
 int main(int argc, char **argv) {
-    int test[5] = {0, 0, 0, 0, 0};
-    printf("%d\n", test[2]);
+    std::srand(time(0));
+    printf("\n");
+    // DEBUGGING
+    std::vector<std::string> words = get_word_list("../data/wordle_words.txt", 1297200);
+    Knowledge test_info = {};
+    std::string sol = make_random_guess(words);
+    update_knowledge(test_info, "cabal", sol);
+    std::cout << sol << ": ";
+    print_guess(test_info, "cabal");
+    // END DEBUGGING
+    printf("\n");
     return 0;
 }
 
