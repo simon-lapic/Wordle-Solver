@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstring>
 
 /**
  * @brief Used to make it easier to pass the known data between functions.
@@ -204,34 +205,41 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
 
     // Allocate and initialize host memory
     float *info = (float*)malloc(temp*sizeof(float));
-    char **words = (char**)malloc(temp*5*sizeof(char));
+    char **words = (char**)malloc(temp*sizeof(char*));
     for (int i = 0; i<word_list.size(); i++) {
-        for (int j = 0; j<5; j++) {
-            words[i][j] = word_list[i].c_str()[j];
-        }
+        words[i] = (char*)malloc(sizeof(word_list[i].c_str()));
+        std::strcpy(words[i], word_list[i].c_str());
     }
+    printf("host allocated\n");
 
     // Allocate device memory
     float *d_info;
     char **d_words, **d_sols;
     int *d_n, *d_k;
     cudaMalloc(&d_info, temp*sizeof(float));
-    cudaMalloc(&d_words, temp*5*sizeof(char));
-    cudaMalloc(&d_sols, temp*5*sizeof(char));
+    cudaMalloc(&d_words, temp*sizeof(char*));
+    cudaMalloc(&d_sols, temp*sizeof(char*));
     cudaMalloc(&d_n, sizeof(int));
     cudaMalloc(&d_k, sizeof(int));
+    // for (int i = 0; i<word_list.size(); i++) {
+        
+    // }
+    printf("device allocated\n");
 
     // Copy from host to device
     cudaMemcpy(d_words, words, temp*5*sizeof(char), cudaMemcpyHostToDevice);
     cudaMemcpy(d_sols, words, temp*5*sizeof(char), cudaMemcpyHostToDevice);
     cudaMemcpy(d_n, n, sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_k, n, sizeof(int), cudaMemcpyHostToDevice);
+    printf("data copied\n");
 
     // Kernel call
     get_expected_information<<<16, 1024>>>(d_words, d_sols, d_n, d_k, d_info);
 
+
     // Copy data back to host
-    cudaMemcpy(info, d_info, temp*sizeof(float), cudaMemcpyDeviceToHost); 
+    cudaMemcpy(info, d_info, temp*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 
     // Interpret data
     int max_idx = 0;
@@ -290,13 +298,46 @@ void print_guess(Knowledge known, std::string guess) {
     std::cout << std::endl;
 }
 
+void print_dist(std::vector<int> dist) {
+    std::cout << "1: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 1)
+            std::cout << "#";
+    std::cout << "\n2: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 2)
+            std::cout << "#";
+    std::cout << "\n3: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 3)
+            std::cout << "#";
+    std::cout << "\n4: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 4)
+            std::cout << "#";
+    std::cout << "\n5: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 5)
+            std::cout << "#";
+    std::cout << "\n6: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 6)
+            std::cout << "#";
+    std::cout << "\nF: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == -1)
+            std::cout << "#";
+    std::cout << std::endl; 
+}
+
 /**
  * @brief Solves a wordle puzzle for a given solution
  * 
  * @param word std::string, the solution to solve for
  * @param t char, the method to solve it with. Should be 'r' for random or 'i' to use expected information
+ * @return int, the number of guesses it took to solve, or -1 if it failed
  */
-void solve(std::string word, char t) {
+int solve(std::string word, char t) {
     bool solved = false;
     short attempts = 0;
     Knowledge known = {};
@@ -304,7 +345,7 @@ void solve(std::string word, char t) {
 
     if (t == 'r') {
         std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
-        while (attempts < 7 && !solved) {
+        while (attempts < 6 && !solved) {
             std::string guess = make_random_guess(words);
             update_knowledge(known, guess, word);
             cull_word_list(words, known);
@@ -317,7 +358,7 @@ void solve(std::string word, char t) {
         std::cout << message << std::endl;
     } else if (t == 'i') {
         std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
-        while (attempts < 7 && !solved) {
+        while (attempts < 6 && !solved) {
             std::string guess = make_informed_guess(words);
             update_knowledge(known, guess, word);
             cull_word_list(words, known);
@@ -331,6 +372,8 @@ void solve(std::string word, char t) {
     } else {
         std::cout << "Invalid method type. Use 'r' for random or 'i' to use expected information." << std::endl;
     }
+
+    return (solved)?(attempts):(-1);
 }
 
 int main(int argc, char **argv) {
@@ -339,15 +382,14 @@ int main(int argc, char **argv) {
 
     // DEBUGGING
     std::vector<std::string> words = get_word_list("../data/wordle_words.txt", 1297200);
-    std::string sol = make_random_guess(words);
-    solve(sol, 'i');
+    std::vector<std::string> sols = {"woken", "adore", "torso", "chafe", "eject", "study", "undue", "tepid", "happy", "clean", "itchy", "feast", "drive", "prime", "axiom", "brave"};
+    std::vector<int> dist;
+    for (std::string sol : sols) {
+        dist.push_back(solve(sol, 'r'));
+    }
+    print_dist(dist);
     // END DEBUGGING
 
     printf("\n");
     return 0;
 }
-
-
-
-
-
