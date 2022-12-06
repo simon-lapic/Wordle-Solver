@@ -348,6 +348,13 @@ int solve(std::string word, char t) {
         while (attempts < 6 && !solved) {
             std::string guess = make_random_guess(words);
             update_knowledge(known, guess, word);
+            int guess_idx = 0;
+            for (int i = 0; i<words.size(); i++)
+                if (words[i] == guess) {
+                    guess_idx = i;
+                    break;
+                }
+            words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             std::cout << "     "; print_guess(known, guess);
             attempts++;
@@ -361,6 +368,13 @@ int solve(std::string word, char t) {
         while (attempts < 6 && !solved) {
             std::string guess = make_informed_guess(words);
             update_knowledge(known, guess, word);
+            int guess_idx = 0;
+            for (int i = 0; i<words.size(); i++)
+                if (words[i] == guess) {
+                    guess_idx = i;
+                    break;
+                }
+            words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             std::cout << "     "; print_guess(known, guess);
             attempts++;
@@ -386,6 +400,7 @@ int main(int argc, char **argv) {
     std::vector<int> dist;
     for (std::string sol : sols) {
         dist.push_back(solve(sol, 'r'));
+        std::cout << std::endl;
     }
     print_dist(dist);
     // END DEBUGGING
