@@ -370,7 +370,8 @@ int solve(std::string word, char t) {
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             int num_remaining = words.size();
-            std::cout << "     "; print_guess(known, guess) << " (" << num_remaining << " possible remaining)";
+            std::cout << "     "; print_guess(known, guess); 
+            std::cout << " (" << num_remaining << " possible remaining)" << std::endl;
             attempts++;
             if (guess == word)
                 solved = true;
