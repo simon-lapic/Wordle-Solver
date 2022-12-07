@@ -242,13 +242,13 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
             max_idx = i;
 
     // Free memory
-    free(info);
-    free(words);
-    free(n);
-    cudaFree(d_info);
-    cudaFree(d_words);
-    cudaFree(d_n);
-    cudaFree(d_k);
+    free(info); printf("info freed\n");
+    free(words); printf("words freed\n");
+    free(n); printf("n freed\n");
+    cudaFree(d_info); printf("d_info freed\n");
+    cudaFree(d_words); printf("d_words freed\n");
+    cudaFree(d_n); printf("d_n freed\n");
+    cudaFree(d_k); printf("d_k freed\n");
     
     return word_list[max_idx];
 }
