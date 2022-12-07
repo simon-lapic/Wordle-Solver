@@ -207,7 +207,7 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     // Allocate and initialize host memory
     float *info = (float*)malloc(temp*sizeof(float));
     char *words = (char*)malloc(temp*5*sizeof(char));
-    for (int i = 0; i<word_list.size()*5; i++) {
+    for (int i = 0; i<temp*5; i++) {
         words[i] = word_list[int(i/5)].at(i%5);
     }
 
@@ -236,18 +236,17 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
 
     // Interpret data
     int max_idx = 0;
-    for (int i = 0; i<*n; i++) 
+    for (int i = 0; i<temp; i++) 
         if (info[i] > info[max_idx]) 
             max_idx = i;
 
     // Free memory
-    free(info); //printf("info freed\n");
-    free(words); //printf("words freed\n");
-    // free(n); printf("n freed\n");
-    cudaFree(d_info); //printf("d_info freed\n");
-    cudaFree(d_words); //printf("d_words freed\n");
-    cudaFree(d_n); //printf("d_n freed\n");
-    cudaFree(d_k); //printf("d_k freed\n");
+    free(info); 
+    free(words); 
+    cudaFree(d_info); 
+    cudaFree(d_words); 
+    cudaFree(d_n); 
+    cudaFree(d_k); 
     
     return word_list[max_idx];
 }
@@ -389,16 +388,21 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
-    // std::vector<std::string> sols = {"woken", "adore", "torso", "chafe", "eject", "study", "undue", "tepid", "happy", "clean", "itchy", "feast", "drive", "prime", "axiom", "brave"};
-    std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 100);
-    std::vector<int> dist;
-    for (std::string sol : sols) {
-        dist.push_back(solve(sol, argv[1][0], (argv[2][0] == 'p')));
-        std::cout << std::endl;
+    Knowledge test_known = {};
+    std::string sol = "moult";
+    while (true) {
+        std::string guess; std::cin >> guess;
+        update_knowledge(knwon, guess, sol);
+        print_guess(known, guess);
     }
-    print_dist(dist);
     // END DEBUGGING
-
+    // std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 100);
+    // std::vector<int> dist;
+    // for (std::string sol : sols) {
+    //     dist.push_back(solve(sol, argv[1][0], (argv[2][0] == 'p')));
+    //     std::cout << std::endl;
+    // }
+    // print_dist(dist);
     printf("\n");
     return 0;
 }
