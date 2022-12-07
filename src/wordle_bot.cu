@@ -393,7 +393,7 @@ int main(int argc, char **argv) {
     std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 100);
     std::vector<int> dist;
     for (std::string sol : sols) {
-        dist.push_back(solve(sol, argv[1][0]), argv[2][0]);
+        dist.push_back(solve(sol, argv[1][0], argv[2][0]));
         std::cout << std::endl;
     }
     print_dist(dist);
