@@ -233,7 +233,6 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
 
     // Copy data back to host
     cudaMemcpy(info, d_info, temp*sizeof(float), cudaMemcpyDeviceToHost);
-    
 
     // Interpret data
     int max_idx = 0;
@@ -242,13 +241,13 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
             max_idx = i;
 
     // Free memory
-    free(info); printf("info freed\n");
-    free(words); printf("words freed\n");
+    free(info); //printf("info freed\n");
+    free(words); //printf("words freed\n");
     // free(n); printf("n freed\n");
-    cudaFree(d_info); printf("d_info freed\n");
-    cudaFree(d_words); printf("d_words freed\n");
-    cudaFree(d_n); printf("d_n freed\n");
-    cudaFree(d_k); printf("d_k freed\n");
+    cudaFree(d_info); //printf("d_info freed\n");
+    cudaFree(d_words); //printf("d_words freed\n");
+    cudaFree(d_n); //printf("d_n freed\n");
+    cudaFree(d_k); //printf("d_k freed\n");
     
     return word_list[max_idx];
 }
