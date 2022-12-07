@@ -330,7 +330,7 @@ void print_dist(std::vector<int> dist) {
  * @param t char, the method to solve it with. Should be 'r' for random or 'i' to use expected information
  * @return int, the number of guesses it took to solve, or -1 if it failed
  */
-int solve(std::string word, char t) {
+int solve(std::string word, char t, bool print) {
     bool solved = false;
     short attempts = 0;
     Knowledge known = {};
@@ -349,7 +349,7 @@ int solve(std::string word, char t) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            std::cout << "     "; print_guess(known, guess);
+            std::cout << "     "; if (print) print_guess(known, guess);
             attempts++;
             if (guess == word)
                 solved = true;
@@ -370,8 +370,7 @@ int solve(std::string word, char t) {
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             int num_remaining = words.size();
-            std::cout << "     "; print_guess(known, guess); 
-            std::cout << " (" << num_remaining << " possible remaining)" << std::endl;
+            std::cout << "     "; if (print) print_guess(known, guess);
             attempts++;
             if (guess == word)
                 solved = true;
@@ -390,10 +389,11 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
-    std::vector<std::string> sols = {"woken", "adore", "torso", "chafe", "eject", "study", "undue", "tepid", "happy", "clean", "itchy", "feast", "drive", "prime", "axiom", "brave"};
+    // std::vector<std::string> sols = {"woken", "adore", "torso", "chafe", "eject", "study", "undue", "tepid", "happy", "clean", "itchy", "feast", "drive", "prime", "axiom", "brave"};
+    std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 12972);
     std::vector<int> dist;
     for (std::string sol : sols) {
-        dist.push_back(solve(sol, argv[1][0]));
+        dist.push_back(solve(sol, argv[1][0]), argv[2][0]);
         std::cout << std::endl;
     }
     print_dist(dist);
