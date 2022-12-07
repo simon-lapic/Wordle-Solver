@@ -128,7 +128,6 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
 __global__ void get_expected_information(char *word_list, char *solution_list, int *n, int *k, float *info) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < *n) {
-        printf("Hello from thread %d!", idx);
         char potential_guess[5] = {word_list[idx*5], word_list[idx*5+1], word_list[idx*5+2], 
                                     word_list[idx*5+3], word_list[idx*5+4]};
         int *exclusions;
@@ -211,7 +210,6 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     for (int i = 0; i<word_list.size()*5; i++) {
         words[i] = word_list[int(i/5)].at(i%5);
     }
-    printf("host allocated\n");
 
     // Allocate device memory
     float *d_info;
@@ -222,23 +220,19 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     cudaMalloc(&d_sols, temp*5*sizeof(char));
     cudaMalloc(&d_n, sizeof(int));
     cudaMalloc(&d_k, sizeof(int));
-    printf("device allocated\n");
 
     // Copy from host to device
     cudaMemcpy(d_words, words, temp*5*sizeof(char), cudaMemcpyHostToDevice);
     cudaMemcpy(d_sols, words, temp*5*sizeof(char), cudaMemcpyHostToDevice);
     cudaMemcpy(d_n, n, sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_k, n, sizeof(int), cudaMemcpyHostToDevice);
-    printf("data copied\n");
 
     // Kernel call
     get_expected_information<<<16, 1024>>>(d_words, d_sols, d_n, d_k, d_info); // 32, 512
     cudaDeviceSynchronize();
-    printf("Kernel completed\n");
 
     // Copy data back to host
     cudaMemcpy(info, d_info, temp*sizeof(float), cudaMemcpyDeviceToHost);
-    printf("data copied\n");
     
 
     // Interpret data
