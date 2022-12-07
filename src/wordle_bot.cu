@@ -390,7 +390,7 @@ int main(int argc, char **argv) {
 
     // DEBUGGING
     // std::vector<std::string> sols = {"woken", "adore", "torso", "chafe", "eject", "study", "undue", "tepid", "happy", "clean", "itchy", "feast", "drive", "prime", "axiom", "brave"};
-    std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 12972);
+    std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 100);
     std::vector<int> dist;
     for (std::string sol : sols) {
         dist.push_back(solve(sol, argv[1][0]), argv[2][0]);
