@@ -392,8 +392,8 @@ int main(int argc, char **argv) {
     std::string sol = "moult";
     while (true) {
         std::string guess; std::cin >> guess;
-        update_knowledge(knwon, guess, sol);
-        print_guess(known, guess);
+        update_knowledge(test_known, guess, sol);
+        print_guess(test_known, guess);
     }
     // END DEBUGGING
     // std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 100);
