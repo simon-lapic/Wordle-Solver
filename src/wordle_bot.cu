@@ -228,7 +228,7 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     cudaMemcpy(d_k, n, sizeof(int), cudaMemcpyHostToDevice);
 
     // Kernel call
-    get_expected_information<<<16, 1024>>>(d_words, d_sols, d_n, d_k, d_info); // 32, 512
+    get_expected_information<<<32, 512>>>(d_words, d_sols, d_n, d_k, d_info); // 32, 512
     cudaDeviceSynchronize();
 
     // Copy data back to host
@@ -369,7 +369,7 @@ int solve(std::string word, char t) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            std::cout << "     "; print_guess(known, guess) << " (" << words.size() << " possible remaining)";
+            std::cout << "     "; print_guess(known, guess) << " (" << int(words.size()) << " possible remaining)";
             attempts++;
             if (guess == word)
                 solved = true;
