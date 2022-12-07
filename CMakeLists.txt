@@ -10,8 +10,5 @@ if(NOT DEFINED CMAKE_CUDA_STANDARD)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 endif()
 
-# add_executable(name src/name.ext)
-# target_include_directories(name PRIVATE include)
-
 add_executable(wordle_bot src/wordle_bot.cu)
 target_include_directories(wordle_bot PRIVATE include)
