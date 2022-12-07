@@ -244,7 +244,7 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     // Free memory
     free(info); printf("info freed\n");
     free(words); printf("words freed\n");
-    free(n); printf("n freed\n");
+    // free(n); printf("n freed\n");
     cudaFree(d_info); printf("d_info freed\n");
     cudaFree(d_words); printf("d_words freed\n");
     cudaFree(d_n); printf("d_n freed\n");
