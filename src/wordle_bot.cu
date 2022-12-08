@@ -290,35 +290,33 @@ void print_guess(Knowledge known, std::string guess) {
     std::cout << std::endl;
 }
 
+/**
+ * @brief Prints a distribution graph for how well the bot did solving the game
+ * 
+ * @param dist 
+ */
 void print_dist(std::vector<int> dist) {
-    std::cout << "1: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == 1)
+    int counts[7];
+    for (int i = 0; i<dist.size(); i++) {
+        int index = (dist[i] == -1)?(7):(i);
+        counts[index]++;
+    }
+
+    int max = 0;
+    for (int i = 0; i<7; i++)
+        max = (max<counts[i])?(counts[i]):(max);
+    
+    float scale = max/50.0;
+
+    for (int i = 0; i<7; i++) {
+        char label = (i<6)?(char(i+97)):('F');
+        int length = int(counts[i]/scale);
+        std::cout << label << ": ";
+        for (int k = 0; k<length; k++)
             std::cout << "#";
-    std::cout << "\n2: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == 2)
-            std::cout << "#";
-    std::cout << "\n3: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == 3)
-            std::cout << "#";
-    std::cout << "\n4: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == 4)
-            std::cout << "#";
-    std::cout << "\n5: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == 5)
-            std::cout << "#";
-    std::cout << "\n6: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == 6)
-            std::cout << "#";
-    std::cout << "\nF: ";
-    for (int i = 0; i<dist.size(); i++)
-        if (dist[i] == -1)
-            std::cout << "#";
+        std::cout << " (" << counts[i] << ")\n";
+    }
+
     std::cout << std::endl; 
 }
 
