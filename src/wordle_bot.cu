@@ -184,10 +184,10 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
                         contains_letter = true;
                     }
                 }
-            }
-            if (!contains_letter) {
-                is_valid = false;
-                break;
+                if (!contains_letter) {
+                    is_valid = false;
+                    break;
+                }
             }
         }
 
