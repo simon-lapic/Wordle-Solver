@@ -244,7 +244,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
             }
 
             // Count excluded possible guesses
-            int num_excluded = 0;
+            int num_excluded = 0; 
             for (int j = *n-1; j>=0; j--) {
                 bool is_valid = true;
                 for (int l = 0; l<5; l++) {
