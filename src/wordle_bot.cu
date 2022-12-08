@@ -257,6 +257,21 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
                     }
                 }
 
+                for (int k = 0; k<26; k++) {
+                    if (letter_counts[k] > 0) {
+                        bool contains_letter = false;
+                        for (int l = 0; l<5; l++) {
+                            if (potential_guess[l] == char(k+97)) {
+                                contains_letter = true;
+                            }
+                        }
+                        if (!contains_letter) {
+                            is_valid = false;
+                            break;
+                        }
+                    }
+                }
+
                 if (!is_valid) {
                     num_excluded++;
                 }
