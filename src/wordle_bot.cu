@@ -260,11 +260,11 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
                     }
                 }
 
-                for (int k = 0; k<26; k++) {
-                    if (letter_counts[k] > 0) {
+                for (int m = 0; m<26; m++) {
+                    if (letter_counts[m] > 0) {
                         bool contains_letter = false;
                         for (int l = 0; l<5; l++) {
-                            if (guess_to_check[l] == char(k+97)) {
+                            if (guess_to_check[l] == char(m+97)) {
                                 contains_letter = true;
                             }
                         }
