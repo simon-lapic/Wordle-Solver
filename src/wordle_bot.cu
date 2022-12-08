@@ -218,7 +218,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
                                         solution_list[i*5+3], solution_list[i*5+4]};
 
             // Find the information
-            char state[5];
+            char state[5] = {0, 0, 0, 0, 0};
             char letter_counts[26] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             for (int g = 0; g<5; g++) {
                 int count = 0;
