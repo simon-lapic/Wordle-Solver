@@ -354,7 +354,7 @@ int solve(std::string word, std::string path, char t, bool print) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            std::cout << "     "; if (print) print_guess(known, guess);
+            if (print) {std::cout << "     "; print_guess(known, guess);}
             attempts++;
             if (guess == word)
                 solved = true;
@@ -378,7 +378,7 @@ int solve(std::string word, std::string path, char t, bool print) {
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             int num_remaining = words.size();
-            std::cout << "     "; if (print) print_guess(known, guess);
+            if (print) {std::cout << "     "; print_guess(known, guess);}
             attempts++;
             if (guess == word)
                 solved = true;
