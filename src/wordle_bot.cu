@@ -59,6 +59,72 @@ bool validate(std::string word) {
 }
 
 /**
+ * @brief Prints a guess using the appropriate colors based on what information is known. A letter appears yellow if it appears in
+ * the word but not at that position and green if it is at that position, otherwie gray if the letter is not in the word
+ * 
+ * @param known Knowledge, the knowledge known at the point the guess was made
+ * @param guess std::string, the guess to print
+ */
+void print_guess(Knowledge known, std::string guess) {
+    for (int i = 0; i<guess.size(); i++) {
+        if (guess.at(i) == known.state[i]) {
+            known.letter_counts[int(guess.at(i))-97]--;
+        }
+    }
+    
+    for (int i = 0; i<guess.size(); i++) {
+        if (guess.at(i) == known.state[i]) {
+            std::cout << "\x1B[32m" << guess.at(i) << "\033[0m"; // ANSI Green
+        } else if (known.letter_counts[int(guess.at(i))-97] > 0) {
+            known.letter_counts[int(guess.at(i))-97]--;
+            std::cout << "\x1B[33m" << guess.at(i) << "\033[0m"; // ANSI Yellow
+        } else {
+            std::cout << guess.at(i);
+        }
+        std::cout << " ";
+    }
+
+    std::cout << std::endl;
+}
+
+/**
+ * @brief Prints a distribution graph for how well the bot did solving the game
+ * 
+ * @param dist 
+ */
+void print_dist(std::vector<int> dist) {
+    std::cout << "1: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 1)
+            std::cout << "#";
+    std::cout << "\n2: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 2)
+            std::cout << "#";
+    std::cout << "\n3: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 3)
+            std::cout << "#";
+    std::cout << "\n4: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 4)
+            std::cout << "#";
+    std::cout << "\n5: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 5)
+            std::cout << "#";
+    std::cout << "\n6: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == 6)
+            std::cout << "#";
+    std::cout << "\nF: ";
+    for (int i = 0; i<dist.size(); i++)
+        if (dist[i] == -1)
+            std::cout << "#";
+    std::cout << std::endl; 
+}
+
+/**
  * @brief Updates the given Knowledge struct with new information gained from a new guess. This method assumes that the 
  * solution is known to the user and the bot is running automatically. Otherwise, the Knowledge needs to be updated manually
  * 
@@ -101,7 +167,7 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
     for (int i = word_list.size()-1; i>=0; i--) {
         bool is_valid = true;
         for (int j = 0; j<5; j++) {
-            if (known.letter_counts[int(word_list.at(i).at(j)-97)] < 0) {
+            if (known.letter_counts[int(word_list.at(i).at(j))-97] < 0) {
                 is_valid = false;
                 break;
             } else if (known.state[j] != 0 && word_list.at(i).at(j) != known.state[j]) {
@@ -262,65 +328,6 @@ std::string make_random_guess(std::vector<std::string> word_list) {
 }
 
 /**
- * @brief Prints a guess using the appropriate colors based on what information is known. A letter appears yellow if it appears in
- * the word but not at that position and green if it is at that position, otherwie gray if the letter is not in the word
- * 
- * @param known Knowledge, the knowledge known at the point the guess was made
- * @param guess std::string, the guess to print
- */
-void print_guess(Knowledge known, std::string guess) {
-    for (int i = 0; i<guess.size(); i++) {
-        if (guess.at(i) == known.state[i]) {
-            known.letter_counts[int(guess.at(i))-97]--;
-        }
-    }
-    
-    for (int i = 0; i<guess.size(); i++) {
-        if (guess.at(i) == known.state[i]) {
-            std::cout << "\x1B[32m" << guess.at(i) << "\033[0m"; // ANSI Green
-        } else if (known.letter_counts[int(guess.at(i))-97] > 0) {
-            known.letter_counts[int(guess.at(i))-97]--;
-            std::cout << "\x1B[33m" << guess.at(i) << "\033[0m"; // ANSI Yellow
-        } else {
-            std::cout << guess.at(i);
-        }
-        std::cout << " ";
-    }
-
-    std::cout << std::endl;
-}
-
-/**
- * @brief Prints a distribution graph for how well the bot did solving the game
- * 
- * @param dist 
- */
-void print_dist(std::vector<int> dist) {
-    int counts[7] = {0, 0, 0, 0, 0, 0, 0};
-    for (int i = 0; i<dist.size(); i++) {
-        int index = (dist[i] == -1)?(7):(i);
-        counts[index]++;
-    }
-
-    int max = 0;
-    for (int i = 0; i<7; i++)
-        max = (max<counts[i])?(counts[i]):(max);
-    
-    float scale = max/50.0;
-
-    for (int i = 0; i<7; i++) {
-        char label = (i<6)?(char(i+48)):('F');
-        int length = int(counts[i]/scale);
-        std::cout << label << ": ";
-        for (int k = 0; k<length; k++)
-            std::cout << "#";
-        std::cout << " (" << counts[i] << ")\n";
-    }
-
-    std::cout << std::endl; 
-}
-
-/**
  * @brief Solves a wordle puzzle for a given solution
  * 
  * @param word std::string, the solution to solve for
@@ -403,9 +410,10 @@ int main(int argc, char **argv) {
 
     std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
     std::vector<int> dist;
+    std::cout << "Working"
     for (std::string sol : sols) {
         dist.push_back(solve(sol, argv[1], argv[3][0], (argc > 4)));
-        std::cout << std::endl;
+        if (argc > 4) std::cout << std::endl;
     }
     print_dist(dist);
     
