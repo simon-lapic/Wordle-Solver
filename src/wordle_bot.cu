@@ -220,6 +220,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
             // Find the information
             char state[5] = {0, 0, 0, 0, 0};
             char letter_counts[26] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            // counting the number of characters backwords
             for (int g = 0; g<5; g++) {
                 int count = 0;
                 bool found = false;
@@ -246,12 +247,14 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
             // Count excluded possible guesses
             int num_excluded = 0; 
             for (int j = *n-1; j>=0; j--) {
+                char guess_to_check[5] = {word_list[j*5], word_list[j*5+1], word_list[j*5+2], 
+                                          word_list[j*5+3], word_list[j*5+4]};
                 bool is_valid = true;
                 for (int l = 0; l<5; l++) {
-                    if (letter_counts[int(potential_guess[l]-97)] < 0) {
+                    if (letter_counts[int(guess_to_check[l]-97)] < 0) {
                         is_valid = false;
                         break;
-                    } else if (state[l] != 0 && potential_guess[l] != state[l]) {
+                    } else if (state[l] != 0 && guess_to_check[l] != state[l]) {
                         is_valid = false;
                         break;
                     }
@@ -261,7 +264,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
                     if (letter_counts[k] > 0) {
                         bool contains_letter = false;
                         for (int l = 0; l<5; l++) {
-                            if (potential_guess[l] == char(k+97)) {
+                            if (guess_to_check[l] == char(k+97)) {
                                 contains_letter = true;
                             }
                         }
