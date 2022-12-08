@@ -180,7 +180,7 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
             if (known.letter_counts[j] > 0) {
                 bool contains_letter = false;
                 for (int k = 0; k<5; k++) {
-                    if (k == char(j+97)) {
+                    if (word_list.at(i).at(k) == char(j+97)) {
                         contains_letter = true;
                     }
                 }
