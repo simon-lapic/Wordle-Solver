@@ -352,8 +352,11 @@ int solve(std::string word, std::string path, char t, bool print) {
             if (guess == word)
                 solved = true;
         }
-        std::string message = (solved)?("Solved!"):("Failed!");
-        std::cout << message << std::endl;
+
+        if (print) {
+            std::string message = (solved)?("Solved!"):("Failed!");
+            std::cout << message << std::endl;
+        }
     } else if (t == 'i') {
         if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
         while (attempts < 6 && !solved) {
@@ -373,8 +376,10 @@ int solve(std::string word, std::string path, char t, bool print) {
             if (guess == word)
                 solved = true;
         }
-        std::string message = (solved)?("Solved!"):("Failed!");
-        std::cout << message << std::endl;
+        if (print) {
+            std::string message = (solved)?("Solved!"):("Failed!");
+            std::cout << message << std::endl;
+        }
     } else {
         std::cout << "Invalid method type. Use 'r' for random or 'i' to use expected information." << std::endl;
     }
