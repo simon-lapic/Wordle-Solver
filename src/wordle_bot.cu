@@ -344,6 +344,7 @@ int solve(std::string word, std::string path, char t, bool print) {
     if (t == 'r') {
         if (print) std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
         while (attempts < 6 && !solved) {
+            int num_remaining = words.size();
             std::string guess = make_random_guess(words);
             update_knowledge(known, guess, word);
             int guess_idx = 0;
@@ -354,7 +355,6 @@ int solve(std::string word, std::string path, char t, bool print) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            int num_remaining = words.size();
             if (print) {std::cout << "     (" << num_remaining << ") "; print_guess(known, guess);}
             attempts++;
             if (guess == word)
@@ -368,6 +368,7 @@ int solve(std::string word, std::string path, char t, bool print) {
     } else if (t == 'i') {
         if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
         while (attempts < 6 && !solved) {
+            int num_remaining = words.size();
             std::string guess = make_informed_guess(words);
             update_knowledge(known, guess, word);
             int guess_idx = 0;
@@ -378,7 +379,6 @@ int solve(std::string word, std::string path, char t, bool print) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            int num_remaining = words.size();
             if (print) {std::cout << "     (" << num_remaining << ") "; print_guess(known, guess);}
             attempts++;
             if (guess == word)
