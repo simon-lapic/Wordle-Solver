@@ -213,7 +213,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
                                     word_list[idx*5+3], word_list[idx*5+4]};
         int *exclusions;
 
-        for (int i = 0; i<*k*5; i++) {
+        for (int i = 0; i<*k; i++) {
             char potential_solution[5] = {solution_list[i*5], solution_list[i*5+1], solution_list[i*5+2], 
                                         solution_list[i*5+3], solution_list[i*5+4]};
 
@@ -297,13 +297,13 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
  * @return std::string 
  */
 std::string make_informed_guess(std::vector<std::string> word_list) {
-    int temp = word_list.size();
-    int *n = &temp;
+    int size = word_list.size();
+    int *n = &size;
 
     // Allocate and initialize host memory
-    float *info = (float*)malloc(temp*sizeof(float));
-    char *words = (char*)malloc(temp*5*sizeof(char));
-    for (int i = 0; i<temp*5; i++) {
+    float *info = (float*)malloc(size*sizeof(float));
+    char *words = (char*)malloc(size*5*sizeof(char));
+    for (int i = 0; i<size*5; i++) {
         words[i] = word_list[int(i/5)].at(i%5);
     }
 
@@ -311,15 +311,15 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     float *d_info;
     char *d_words, *d_sols;
     int *d_n, *d_k;
-    cudaMalloc(&d_info, temp*sizeof(float));
-    cudaMalloc(&d_words, temp*5*sizeof(char));
-    cudaMalloc(&d_sols, temp*5*sizeof(char));
+    cudaMalloc(&d_info, size*sizeof(float));
+    cudaMalloc(&d_words, size*5*sizeof(char));
+    cudaMalloc(&d_sols, size*5*sizeof(char));
     cudaMalloc(&d_n, sizeof(int));
     cudaMalloc(&d_k, sizeof(int));
 
     // Copy from host to device
-    cudaMemcpy(d_words, words, temp*5*sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_sols, words, temp*5*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_words, words, size*5*sizeof(char), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_sols, words, size*5*sizeof(char), cudaMemcpyHostToDevice);
     cudaMemcpy(d_n, n, sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_k, n, sizeof(int), cudaMemcpyHostToDevice);
 
@@ -328,11 +328,11 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     cudaDeviceSynchronize();
 
     // Copy data back to host
-    cudaMemcpy(info, d_info, temp*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(info, d_info, size*sizeof(float), cudaMemcpyDeviceToHost);
 
     // Interpret data
     int max_idx = 0;
-    for (int i = 0; i<temp; i++) 
+    for (int i = 0; i<size; i++) 
         if (info[i] > info[max_idx]) 
             max_idx = i;
 
@@ -367,13 +367,13 @@ std::string make_random_guess(std::vector<std::string> word_list) {
  */
 int solve(std::string word, std::string path, char t, bool print) {
     bool solved = false;
-    short attempts = 0;
+    short atsizets = 0;
     Knowledge known = {};
     std::vector<std::string> words = get_word_list(path, 12972); // 12972
 
     if (t == 'r') {
         if (print) std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
-        while (attempts < 6 && !solved) {
+        while (atsizets < 6 && !solved) {
             int num_remaining = words.size();
             std::string guess = make_random_guess(words);
             update_knowledge(known, guess, word);
@@ -386,7 +386,7 @@ int solve(std::string word, std::string path, char t, bool print) {
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             if (print) {std::cout << "     (" << num_remaining << ") "; print_guess(known, guess);}
-            attempts++;
+            atsizets++;
             if (guess == word)
                 solved = true;
         }
@@ -397,7 +397,7 @@ int solve(std::string word, std::string path, char t, bool print) {
         }
     } else if (t == 'i') {
         if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
-        while (attempts < 6 && !solved) {
+        while (atsizets < 6 && !solved) {
             int num_remaining = words.size();
             std::string guess = make_informed_guess(words);
             update_knowledge(known, guess, word);
@@ -410,7 +410,7 @@ int solve(std::string word, std::string path, char t, bool print) {
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
             if (print) {std::cout << "     (" << num_remaining << ") "; print_guess(known, guess);}
-            attempts++;
+            atsizets++;
             if (guess == word)
                 solved = true;
         }
@@ -422,7 +422,7 @@ int solve(std::string word, std::string path, char t, bool print) {
         std::cout << "Invalid method type. Use 'r' for random or 'i' to use expected information." << std::endl;
     }
 
-    return (solved)?(attempts):(-1);
+    return (solved)?(atsizets):(-1);
 }
 
 int main(int argc, char **argv) {
