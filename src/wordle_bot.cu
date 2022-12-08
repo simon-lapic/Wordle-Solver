@@ -176,6 +176,21 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
             }
         }
 
+        for (int j = 0; j<26; j++) {
+            if (known.letter_counts[j] > 0) {
+                bool contains_letter = false;
+                for (int k = 0; k<5; k++) {
+                    if (k == char(j+97)) {
+                        contains_letter = true;
+                    }
+                }
+            }
+            if (!contains_letter) {
+                is_valid = false;
+                break;
+            }
+        }
+
         if (!is_valid) {
             word_list.erase(word_list.begin() + i);
         }
