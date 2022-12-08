@@ -230,7 +230,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
 
             // Count excluded possible guesses
             int num_excluded = 0;
-            for (int j = *n; j>=0; j--) {
+            for (int j = *n-1; j>=0; j--) {
                 bool is_valid = true;
                 for (int l = 0; l<5; l++) {
                     if (letter_counts[int(potential_guess[l]-97)] < 0) {
@@ -399,26 +399,26 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
-    Knowledge test_known = {};
-    std::string sol = "ounce";
-    std::vector<std::string> words = {"crate", "tepid", "itchy", "ounce", "store"};
-    while (true) {
-        std::string guess; std::cin >> guess;
-        update_knowledge(test_known, guess, sol);
-        cull_word_list(words, test_known);
-        print_guess(test_known, guess);
-        for (std::string word : words) std::cout << word << ", ";
-        std::cout << std::endl;
-    }
+    // Knowledge test_known = {};
+    // std::string sol = "ounce";
+    // std::vector<std::string> words = {"crate", "tepid", "itchy", "ounce", "store"};
+    // while (true) {
+    //     std::string guess; std::cin >> guess;
+    //     update_knowledge(test_known, guess, sol);
+    //     cull_word_list(words, test_known);
+    //     print_guess(test_known, guess);
+    //     for (std::string word : words) std::cout << word << ", ";
+    //     std::cout << std::endl;
+    // }
     // END DEBUGGING
 
-    // std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
-    // std::vector<int> dist;
-    // for (std::string sol : sols) {
-    //     dist.push_back(solve(sol, argv[1], argv[3][0], (argc > 4)));
-    //     if (argc > 4) std::cout << std::endl;
-    // }
-    // print_dist(dist);
+    std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
+    std::vector<int> dist;
+    for (std::string sol : sols) {
+        dist.push_back(solve(sol, argv[1], argv[3][0], (argc > 4)));
+        if (argc > 4) std::cout << std::endl;
+    }
+    print_dist(dist);
     
     printf("\n");
     return 0;
