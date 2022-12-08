@@ -296,7 +296,7 @@ void print_guess(Knowledge known, std::string guess) {
  * @param dist 
  */
 void print_dist(std::vector<int> dist) {
-    int counts[7];
+    int counts[7] = {0, 0, 0, 0, 0, 0, 0};
     for (int i = 0; i<dist.size(); i++) {
         int index = (dist[i] == -1)?(7):(i);
         counts[index]++;
@@ -309,7 +309,7 @@ void print_dist(std::vector<int> dist) {
     float scale = max/50.0;
 
     for (int i = 0; i<7; i++) {
-        char label = (i<6)?(char(i+97)):('F');
+        char label = (i<6)?(char(i+48)):('F');
         int length = int(counts[i]/scale);
         std::cout << label << ": ";
         for (int k = 0; k<length; k++)
