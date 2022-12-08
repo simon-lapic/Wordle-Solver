@@ -389,23 +389,22 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
-    Knowledge test_known = {};
-    
+    // Knowledge test_known = {};
     // std::string sol = "moult";
     // while (true) {
     //     std::string guess; std::cin >> guess;
     //     update_knowledge(test_known, guess, sol);
     //     print_guess(test_known, guess);
     // }
+    // END DEBUGGING
 
-    std::vector<std::string> sols = get_word_list(argv[1], int(argv[2]));
+    std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
     std::vector<int> dist;
     for (std::string sol : sols) {
         dist.push_back(solve(sol, argv[1], argv[3][0], (argc > 4)));
         std::cout << std::endl;
     }
     print_dist(dist);
-    // END DEBUGGING
     
     printf("\n");
     return 0;
