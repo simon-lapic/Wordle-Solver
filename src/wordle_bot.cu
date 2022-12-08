@@ -326,14 +326,15 @@ void print_dist(std::vector<int> dist) {
  * @brief Solves a wordle puzzle for a given solution
  * 
  * @param word std::string, the solution to solve for
+ * @param path std::string, the file path for a list of words to use as the possible guesses
  * @param t char, the method to solve it with. Should be 'r' for random or 'i' to use expected information
  * @return int, the number of guesses it took to solve, or -1 if it failed
  */
-int solve(std::string word, char t, bool print) {
+int solve(std::string word, std::string path, char t, bool print) {
     bool solved = false;
     short attempts = 0;
     Knowledge known = {};
-    std::vector<std::string> words = get_word_list("../data/wordle_words.txt", 12972); // 12972
+    std::vector<std::string> words = get_word_list(path, 12972); // 12972
 
     if (t == 'r') {
         std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
@@ -389,20 +390,23 @@ int main(int argc, char **argv) {
 
     // DEBUGGING
     Knowledge test_known = {};
-    std::string sol = "moult";
-    while (true) {
-        std::string guess; std::cin >> guess;
-        update_knowledge(test_known, guess, sol);
-        print_guess(test_known, guess);
-    }
-    // END DEBUGGING
-    // std::vector<std::string> sols = get_word_list("../data/wordle_words.txt", 100);
-    // std::vector<int> dist;
-    // for (std::string sol : sols) {
-    //     dist.push_back(solve(sol, argv[1][0], (argv[2][0] == 'p')));
-    //     std::cout << std::endl;
+    
+    // std::string sol = "moult";
+    // while (true) {
+    //     std::string guess; std::cin >> guess;
+    //     update_knowledge(test_known, guess, sol);
+    //     print_guess(test_known, guess);
     // }
-    // print_dist(dist);
+
+    std::vector<std::string> sols = get_word_list(argv[1], int(argv[2]));
+    std::vector<int> dist;
+    for (std::string sol : sols) {
+        dist.push_back(solve(sol, argv[1], argv[3][0], (argc > 4)));
+        std::cout << std::endl;
+    }
+    print_dist(dist);
+    // END DEBUGGING
+    
     printf("\n");
     return 0;
 }
