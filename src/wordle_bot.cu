@@ -221,10 +221,10 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
             char state[5] = {0, 0, 0, 0, 0};
             char letter_counts[26] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             // counting the number of characters backwords
-            for (int s = 0; s<5; s++) {
+            for (int g = 0; g<5; g++) {
                 int count = 0;
                 bool found = false;
-                for (int g = 0; g<5; g++) {
+                for (int s = 0; s<5; s++) {
                     if (potential_guess[g] == potential_solution[s]) { // Finding the counts gotten from the guess
                         count++;
                         found = true;
