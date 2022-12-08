@@ -335,7 +335,7 @@ int solve(std::string word, std::string path, char t, bool print) {
     std::vector<std::string> words = get_word_list(path, 12972); // 12972
 
     if (t == 'r') {
-        std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
+        if (print) std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
         while (attempts < 6 && !solved) {
             std::string guess = make_random_guess(words);
             update_knowledge(known, guess, word);
@@ -355,7 +355,7 @@ int solve(std::string word, std::string path, char t, bool print) {
         std::string message = (solved)?("Solved!"):("Failed!");
         std::cout << message << std::endl;
     } else if (t == 'i') {
-        std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
+        if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
         while (attempts < 6 && !solved) {
             std::string guess = make_informed_guess(words);
             update_knowledge(known, guess, word);
