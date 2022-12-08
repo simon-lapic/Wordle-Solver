@@ -413,7 +413,7 @@ int main(int argc, char **argv) {
     std::cout << "Working"
     for (std::string sol : sols) {
         dist.push_back(solve(sol, argv[1], argv[3][0], (argc > 4)));
-        if (argc > 4) std::cout << std::endl;
+        if (argc > 4) {std::cout << std::endl;}
     }
     print_dist(dist);
     
