@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <time.h>
+#include <chrono>
 #include <cstdlib>
 #include <string>
 #include <sstream>
@@ -83,8 +83,6 @@ void print_guess(Knowledge known, std::string guess) {
         }
         std::cout << " ";
     }
-
-    std::cout << std::endl;
 }
 
 /**
@@ -414,15 +412,18 @@ std::string make_random_guess(std::vector<std::string> word_list) {
  */
 int solve(std::string word, std::string path, char t, bool print) {
     bool solved = false;
-    short atsizets = 0;
+    short attempts = 0;
     Knowledge known = {};
     std::vector<std::string> words = get_word_list(path, 12972); // 12972
 
     if (t == 'r') {
         if (print) std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
-        while (atsizets < 6 && !solved) {
+        while (attempts < 6 && !solved) {
             int num_remaining = words.size();
+            auto start = high_resolution_clock::now();
             std::string guess = make_random_guess(words);
+            auto stop = high_resolution_clock::now();
+            auto dur = duration_cast<seconds>(stop - start);
             learn(known, guess, word);
             int guess_idx = 0;
             for (int i = 0; i<words.size(); i++)
@@ -432,8 +433,11 @@ int solve(std::string word, std::string path, char t, bool print) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            if (print) {std::cout << "     (" << num_remaining << ") "; print_guess(known, guess);}
-            atsizets++;
+            if (print) {
+                std::cout << "     "; print_guess(known, guess); 
+                std::cout << "   (out of " << num_remaining << " in " << dur << " seconds)\n";
+            }
+            attempts++;
             if (guess == word)
                 solved = true;
         }
@@ -444,9 +448,12 @@ int solve(std::string word, std::string path, char t, bool print) {
         }
     } else if (t == 'i') {
         if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
-        while (atsizets < 6 && !solved) {
+        while (attempts < 6 && !solved) {
             int num_remaining = words.size();
+            auto start = high_resolution_clock::now();
             std::string guess = make_informed_guess(words);
+            auto stop = high_resolution_clock::now();
+            auto dur = duration_cast<seconds>(stop - start);
             learn(known, guess, word);
             int guess_idx = 0;
             for (int i = 0; i<words.size(); i++)
@@ -456,8 +463,11 @@ int solve(std::string word, std::string path, char t, bool print) {
                 }
             words.erase(words.begin() + guess_idx);
             cull_word_list(words, known);
-            if (print) {std::cout << "     (" << num_remaining << ") "; print_guess(known, guess);}
-            atsizets++;
+            if (print) {
+                std::cout << "     "; print_guess(known, guess); 
+                std::cout << "   (out of " << num_remaining << " in " << dur << " seconds)\n";
+            }
+            attempts++;
             if (guess == word)
                 solved = true;
         }
@@ -469,7 +479,7 @@ int solve(std::string word, std::string path, char t, bool print) {
         std::cout << "Invalid method type. Use 'r' for random or 'i' to use expected information." << std::endl;
     }
 
-    return (solved)?(atsizets):(-1);
+    return (solved)?(attempts):(-1);
 }
 
 int main(int argc, char **argv) {
