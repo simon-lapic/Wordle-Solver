@@ -157,8 +157,7 @@ void update_knowledge(Knowledge& known, std::string guess, std::string solution)
             known.state[i] = g_info.state[i];
 
     for (int letter = 0; letter < 26; letter++)
-        if (known.letter_counts[letter]<s_info.letter_counts[letter] 
-            && known.letter_counts[letter]<g_info.letter_counts[letter])
+        if (known.letter_counts[letter]<s_info.letter_counts[letter] && known.letter_counts[letter]<g_info.letter_counts[letter])
             known.letter_counts[letter] = (g_info.letter_counts[letter]<s_info.letter_counts[letter])?
                                           (g_info.letter_counts[letter]):(s_info.letter_counts[letter]);
 }
@@ -439,27 +438,27 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
-    Knowledge test_known = {};
-    std::string sol = "crate";
-    while (true) {
-        std::string guess; std::cin >> guess;
-        update_knowledge(test_known, guess, sol);
-        print_guess(test_known, guess);
-        std::cout << "state: ";
-        for (int i = 0; i<5; i++) std::cout << test_known.state[i];
-        std::cout << std::endl << "letter_counts: ";
-        for (int i = 0; i<26; i++) std::cout << char(i+97) << ":" << test_known.letter_counts[i] << ", ";
-        std::cout << "\n\n";
-    }
+    // Knowledge test_known = {};
+    // std::string sol = "crate";
+    // while (true) {
+    //     std::string guess; std::cin >> guess;
+    //     update_knowledge(test_known, guess, sol);
+    //     print_guess(test_known, guess);
+    //     std::cout << "state: ";
+    //     for (int i = 0; i<5; i++) std::cout << test_known.state[i];
+    //     std::cout << std::endl << "letter_counts: ";
+    //     for (int i = 0; i<26; i++) std::cout << char(i+97) << ":" << test_known.letter_counts[i] << ", ";
+    //     std::cout << "\n\n";
+    // }
     // END DEBUGGING
 
-    // std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
-    // std::vector<int> dist;
-    // for (int i = 0; i<100; i++) {
-    //     dist.push_back(solve("crate", argv[1], argv[3][0], (argc > 4)));
-    //     if (argc > 4) std::cout << std::endl;
-    // }
-    // print_dist(dist);
+    std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
+    std::vector<int> dist;
+    for (int i = 0; i<100; i++) {
+        dist.push_back(solve("crate", argv[1], argv[3][0], (argc > 4)));
+        if (argc > 4) std::cout << std::endl;
+    }
+    print_dist(dist);
     
     printf("\n");
     return 0;
