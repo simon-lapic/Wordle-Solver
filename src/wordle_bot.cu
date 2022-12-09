@@ -125,36 +125,42 @@ void print_dist(std::vector<int> dist) {
 }
 
 /**
+ * @brief Extracts the information from a given word and stores it in a Knowledge struct
+ * 
+ * @param word std::string
+ * @return Knowledge 
+ */
+Knowledge get_info(std::string word) {
+    Knowledge known = {};
+    for (int i = 0; i<5; i++) {
+        known.state[i] = word.at(i);
+        known.letter_counts[int(word.at(i))-97]++;
+    }
+
+    return known;
+}
+
+/**
  * @brief Updates the given Knowledge struct with new information gained from a new guess. This method assumes that the 
- * solution is known to the user and the bot is running automatically. Otherwise, the Knowledge needs to be updated manually
+ * solution is known to the user and the bot is running automatically. Otherwise, the Knowledge needs to be updated manually.
  * 
  * @param known Knowledge&, the information to update
  * @param guess std::string, the new guess to get more information from
  * @param solution std::string, the solution being used at the moment
  */
 void update_knowledge(Knowledge& known, std::string guess, std::string solution) {
-    for (int i = 0; i<5; i++) {
-        int count = 0;
-        bool found = false;
-        for (int j = 0; j<5; j++) {
-            if (guess.at(i) == solution.at(j)) { // Finding the counts gotten from the guess
-                count++;
-                found = true;
-                if (i == j) { // Update the state where necessary
-                    known.state[i] = guess.at(i);
-                }
-            }
-        }
+    Knowledge s_info = get_info(solution);
+    Knowledge g_info = get_info(guess);
 
-        // Update the letter counts if necessary
-        if (known.letter_counts[int(guess.at(i))-97] < count) {
-            known.letter_counts[int(guess.at(i))-97] = count;
-        }
+    for (int i = 0; i<5; i++)
+        if (g_info.state[i] == s_info.state[i])
+            known.state[i] = g_info.state[i];
 
-        if (!found) {
-            known.letter_counts[int(guess.at(i))-97] = -1;
-        }
-    }
+    for (int letter = 0; letter < 26; letter++)
+        if (known.letter_counts[letter]<s_info.letter_counts[letter] 
+            && known.letter_counts[letter]<g_info.letter_counts[letter])
+            known.letter_counts[letter] = (g_info.letter_counts[letter]<s_info.letter_counts[letter])?
+                                          (g_info.letter_counts[letter]):(s_info.letter_counts[letter]);
 }
 
 /**
@@ -433,26 +439,23 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
-    // Knowledge test_known = {};
-    // std::string sol = "ounce";
-    // std::vector<std::string> words = {"crate", "tepid", "itchy", "ounce", "store"};
-    // while (true) {
-    //     std::string guess; std::cin >> guess;
-    //     update_knowledge(test_known, guess, sol);
-    //     cull_word_list(words, test_known);
-    //     print_guess(test_known, guess);
-    //     for (std::string word : words) std::cout << word << ", ";
-    //     std::cout << std::endl;
-    // }
+    Knowledge test_known = {};
+    std::string sol = "crate";
+    while (true) {
+        std::string guess; std::cin >> guess;
+        update_knowledge(test_known, guess, sol);
+        print_guess(test_known, guess);
+        std::cout << std::endl;
+    }
     // END DEBUGGING
 
-    std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
-    std::vector<int> dist;
-    for (int i = 0; i<100; i++) {
-        dist.push_back(solve("crate", argv[1], argv[3][0], (argc > 4)));
-        if (argc > 4) std::cout << std::endl;
-    }
-    print_dist(dist);
+    // std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
+    // std::vector<int> dist;
+    // for (int i = 0; i<100; i++) {
+    //     dist.push_back(solve("crate", argv[1], argv[3][0], (argc > 4)));
+    //     if (argc > 4) std::cout << std::endl;
+    // }
+    // print_dist(dist);
     
     printf("\n");
     return 0;
