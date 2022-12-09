@@ -148,7 +148,7 @@ Knowledge get_info(std::string word) {
  * @param guess std::string, the new guess to get more information from
  * @param solution std::string, the solution being used at the moment
  */
-void update_knowledge(Knowledge& known, std::string guess, std::string solution) {
+void learn(Knowledge& known, std::string guess, std::string solution) {
     Knowledge s_info = get_info(solution);
     Knowledge g_info = get_info(guess);
 
@@ -156,10 +156,10 @@ void update_knowledge(Knowledge& known, std::string guess, std::string solution)
         if (g_info.state[i] == s_info.state[i])
             known.state[i] = g_info.state[i];
 
-    for (int letter = 0; letter < 26; letter++)
-        if (known.letter_counts[letter]<s_info.letter_counts[letter] && known.letter_counts[letter]<g_info.letter_counts[letter])
-            known.letter_counts[letter] = (g_info.letter_counts[letter]<s_info.letter_counts[letter])?
-                                          (g_info.letter_counts[letter]):(s_info.letter_counts[letter]);
+    for (int i = 0; i < 26; i++)
+        if (known.letter_counts[i]<s_info.letter_counts[i] && known.letter_counts[i]<g_info.letter_counts[i])
+            known.letter_counts[i] = (g_info.letter_counts[i]<s_info.letter_counts[i])?
+                                     (g_info.letter_counts[i]):(s_info.letter_counts[i]);
 }
 
 /**
@@ -203,6 +203,102 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
 }
 
 /**
+ * @brief Kernel function to get the letter counts from a given word return it as an array of shorts. 
+ * 
+ * @param word char[5], the word to get info from
+ * @return short[26], the array of letter counts
+ */
+__device__ short[] d_get_letter_counts(char[] word) {
+    short letter_count[26] = {};
+    for (int i = 0; i<5; i++) {
+        letter_counts[int(word[i])-97]++;
+    }
+
+    return letter_counts;
+}
+
+/**
+ * @brief Kernel function to get a specific 5-letter word from a flattened list of words
+ * 
+ * @param word_list char*, the flattened word list
+ * @param idx int, the index of the word to grab
+ * @return char[5] 
+ */
+__device__ char[] d_get_word(char* word_list, int idx) {
+    return {word_list[idx*5], word_list[idx*5+1], word_list[idx*5+2], word_list[idx*5+3], word_list[idx*5+4]};
+}
+
+/**
+ * @brief Kernel function to update the given state and letter counts with information gained from a new guess.
+ * 
+ * Comparable to the host function learn()
+ * 
+ * @param guess char[5], the guess
+ * @param g_letters short[26], the count of letters in the guess
+ * @param solution char[5], the solution
+ * @param s_letters short[26], the count of letters in the solution
+ * @param learned_state &char[5], the known state, updates with new information
+ * @param learned_letters &short[26], the known solution letter counts, updates with new information
+ */
+__device__ void d_learn(char[] guess, short[] g_letters, char[] solution, short[] s_letters, 
+                        char[] &learned_state, short[] &learned_letters) {
+    for (int i = 0; i<5; i++)
+        if (guess[i] == solution[i])
+            learned_state[i] = guess[i];
+
+    for (int i = 0; i < 26; i++)
+        if (learned_letters[i]<s_letters[i] && learned_letters[i]<g_letters[i])
+            learned_letters[i] = (g_letters[i]<s_letters[i])?(g_letters[i]):(s_letters[i]);
+}
+
+/**
+ * @brief Kernel function to determine how many potential solutions are excluded by the known information
+ * 
+ * @param word_list char*, the flattened solution list
+ * @param n int, the size of the word list
+ * @param known_state char[5], the known state of the solution
+ * @param known_letter_counts short[26], the known letter counts in the solution
+ * @return int, the number of valid guesses
+ */
+__device__ int d_count_exclusions(char *word_list, int n, char[] known_state, short[] known_letter_counts) {
+    int excluded = 0;
+    for (int sol_idx = 0; sol_idx<n; sol_idx++) {
+        char possible_solution[5] = d_get_word(word_list, sol_idx*5);
+        short ps_letter_counts[26] = d_get_letter_counts(possible_solution);
+        bool is_valid = true;
+
+        // Check the state
+        for (int i = 0; i<5; i++) {
+            if (known_state[i] != 0 && possible_solution[i] != known_state[i]) {
+                is_valid = false;
+                break;
+            }
+        }
+
+        // Check the letter counts if the potential solution is still valid
+        if (is_valid) {
+            for (int i = 0; i<26; i++) {
+                // There is a letter present in the potential solution that we know is not in the actual solution
+                if(known_letter_counts[i] < 0 && ps_letter_counts[i] > 0) {
+                    is_valid = false;
+                    break;
+                } 
+                // There are letters we known are in the actual solution that are not in the potential solution
+                else if (ps_letter_counts[i] < known_letter_counts[i]) {
+                    is_valid = false;
+                    break;
+                }
+            }
+        }
+
+        if (!is_valid)
+            excluded++;
+    }
+
+    return excluded;
+}
+
+/**
  * @brief Kernel function to get the expected information for each word in the word_list
  * 
  * @param word_list char**, the list of words to get expected information for
@@ -211,89 +307,27 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
  * @param k int, the number of words in the solution list
  * @param info float*, the list of expected information values (generated by this function)
  */
-__global__ void get_expected_information(char *word_list, char *solution_list, int *n, int *k, float *info) {
+__global__ void get_expected_information(char *word_list, char *solution_list, int *n, int *k, float *expected_info) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < *n) {
-        char potential_guess[5] = {word_list[idx*5], word_list[idx*5+1], word_list[idx*5+2], 
-                                    word_list[idx*5+3], word_list[idx*5+4]};
-        int *exclusions;
+        char guess[5] = d_get_word(word_list, idx);
+        short g_letter_counts[26] = d_get_letter_counts(guess);
+        
+        int sum_exclusions = 0;
+        // Loops through each potential solution to see how many guesses from word_list would be removed
+        // if it were the actual solution
+        for (int sol_idx = 0; sol_idx<*k; sol_idx++) {
+            char potential_solution[5] = d_get_word(solution_list, sol_idx);
+            short ps_letter_counts[26] = d_get_letter_counts(potential_solution);
 
-        for (int i = 0; i<*k; i++) {
-            char potential_solution[5] = {solution_list[i*5], solution_list[i*5+1], solution_list[i*5+2], 
-                                        solution_list[i*5+3], solution_list[i*5+4]};
+            char[5] state = {};
+            short[26] letter_counts = {};
+            d_learn(guess, g_letter_counts, potential_solution, ps_letter_counts, state, letter_counts);
 
-            // Find the information
-            char state[5] = {0, 0, 0, 0, 0};
-            char letter_counts[26] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-            // counting the number of characters backwords
-            for (int g = 0; g<5; g++) {
-                int count = 0;
-                bool found = false;
-                for (int s = 0; s<5; s++) {
-                    if (potential_guess[g] == potential_solution[s]) { // Finding the counts gotten from the guess
-                        count++;
-                        found = true;
-                        if (g == s) { // Update the state where necessary
-                            state[g] = potential_guess[g];
-                        }
-                    }
-                }
-
-                // Update the letter counts if necessary
-                if (letter_counts[int(potential_guess[g])-97] < count) {
-                    letter_counts[int(potential_guess[g])-97] = count;
-                }
-
-                if (!found) {
-                    letter_counts[int(potential_guess[g])-97] = -1;
-                }
-            }
-
-            // Count excluded possible guesses
-            int num_excluded = 0; 
-            for (int j = *n-1; j>=0; j--) {
-                char guess_to_check[5] = {word_list[j*5], word_list[j*5+1], word_list[j*5+2], 
-                                          word_list[j*5+3], word_list[j*5+4]};
-                bool is_valid = true;
-                for (int l = 0; l<5; l++) {
-                    if (letter_counts[int(guess_to_check[l]-97)] < 0) {
-                        is_valid = false;
-                        break;
-                    } else if (state[l] != 0 && guess_to_check[l] != state[l]) {
-                        is_valid = false;
-                        break;
-                    }
-                }
-
-                for (int m = 0; m<26; m++) {
-                    if (letter_counts[m] > 0) {
-                        bool contains_letter = false;
-                        for (int l = 0; l<5; l++) {
-                            if (guess_to_check[l] == char(m+97)) {
-                                contains_letter = true;
-                            }
-                        }
-                        if (!contains_letter) {
-                            is_valid = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (!is_valid) {
-                    num_excluded++;
-                }
-            }
-            exclusions[i] = num_excluded;
+            sum_exclusions += d_count_exclusions(solution_list, *n, state, letter_counts);
         }
 
-        // Average the information values and store it in the output
-        float expected = 0.0;
-        for (int i = 0; i<*k; i++) {
-            expected += exclusions[i];
-        }
-
-        info[idx] = expected / *k;
+        expected_info[idx] = sum_exclusions / *k;
     }
 }
 
@@ -384,7 +418,7 @@ int solve(std::string word, std::string path, char t, bool print) {
         while (atsizets < 6 && !solved) {
             int num_remaining = words.size();
             std::string guess = make_random_guess(words);
-            update_knowledge(known, guess, word);
+            learn(known, guess, word);
             int guess_idx = 0;
             for (int i = 0; i<words.size(); i++)
                 if (words[i] == guess) {
@@ -408,7 +442,7 @@ int solve(std::string word, std::string path, char t, bool print) {
         while (atsizets < 6 && !solved) {
             int num_remaining = words.size();
             std::string guess = make_informed_guess(words);
-            update_knowledge(known, guess, word);
+            learn(known, guess, word);
             int guess_idx = 0;
             for (int i = 0; i<words.size(); i++)
                 if (words[i] == guess) {
@@ -438,11 +472,12 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // DEBUGGING
+
     // Knowledge test_known = {};
     // std::string sol = "crate";
     // while (true) {
     //     std::string guess; std::cin >> guess;
-    //     update_knowledge(test_known, guess, sol);
+    //     learn(test_known, guess, sol);
     //     print_guess(test_known, guess);
     //     std::cout << "state: ";
     //     for (int i = 0; i<5; i++) std::cout << test_known.state[i];
@@ -450,7 +485,6 @@ int main(int argc, char **argv) {
     //     for (int i = 0; i<26; i++) std::cout << char(i+97) << ":" << test_known.letter_counts[i] << ", ";
     //     std::cout << "\n\n";
     // }
-    // END DEBUGGING
 
     std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
     std::vector<int> dist;
@@ -459,6 +493,8 @@ int main(int argc, char **argv) {
         if (argc > 4) std::cout << std::endl;
     }
     print_dist(dist);
+
+    // END DEBUGGING
     
     printf("\n");
     return 0;
