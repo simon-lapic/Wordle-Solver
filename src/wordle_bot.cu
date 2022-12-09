@@ -420,10 +420,10 @@ int solve(std::string word, std::string path, char t, bool print) {
         if (print) std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
         while (attempts < 6 && !solved) {
             int num_remaining = words.size();
-            auto start = high_resolution_clock::now();
+            auto start = std::chrono::high_resolution_clock::now();
             std::string guess = make_random_guess(words);
-            auto stop = high_resolution_clock::now();
-            auto dur = duration_cast<seconds>(stop - start);
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
             learn(known, guess, word);
             int guess_idx = 0;
             for (int i = 0; i<words.size(); i++)
@@ -435,7 +435,7 @@ int solve(std::string word, std::string path, char t, bool print) {
             cull_word_list(words, known);
             if (print) {
                 std::cout << "     "; print_guess(known, guess); 
-                std::cout << "   (out of " << num_remaining << " in " << dur << " seconds)\n";
+                std::cout << "   (out of " << num_remaining << " in " << dur.count()/1000 << " seconds)\n";
             }
             attempts++;
             if (guess == word)
@@ -450,10 +450,10 @@ int solve(std::string word, std::string path, char t, bool print) {
         if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
         while (attempts < 6 && !solved) {
             int num_remaining = words.size();
-            auto start = high_resolution_clock::now();
+            auto start = std::chrono::high_resolution_clock::now();
             std::string guess = make_informed_guess(words);
-            auto stop = high_resolution_clock::now();
-            auto dur = duration_cast<seconds>(stop - start);
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
             learn(known, guess, word);
             int guess_idx = 0;
             for (int i = 0; i<words.size(); i++)
@@ -465,7 +465,7 @@ int solve(std::string word, std::string path, char t, bool print) {
             cull_word_list(words, known);
             if (print) {
                 std::cout << "     "; print_guess(known, guess); 
-                std::cout << "   (out of " << num_remaining << " in " << dur << " seconds)\n";
+                std::cout << "   (out of " << num_remaining << " in " << dur.count()/1000 << " seconds)\n";
             }
             attempts++;
             if (guess == word)
