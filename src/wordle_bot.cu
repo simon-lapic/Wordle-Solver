@@ -208,13 +208,10 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
  * @param word char[5], the word to get info from
  * @return short[26], the array of letter counts
  */
-__device__ short[] d_get_letter_counts(char[] word) {
-    short letter_count[26] = {};
+__device__ void d_get_letter_counts(char[] word, char[] &letter_counts) {
     for (int i = 0; i<5; i++) {
         letter_counts[int(word[i])-97]++;
     }
-
-    return letter_counts;
 }
 
 /**
@@ -224,8 +221,8 @@ __device__ short[] d_get_letter_counts(char[] word) {
  * @param idx int, the index of the word to grab
  * @return char[5] 
  */
-__device__ char[] d_get_word(char* word_list, int idx) {
-    return {word_list[idx*5], word_list[idx*5+1], word_list[idx*5+2], word_list[idx*5+3], word_list[idx*5+4]};
+__device__ void d_get_word(char* word_list, int idx, char[] &word) {
+    word = {word_list[idx*5], word_list[idx*5+1], word_list[idx*5+2], word_list[idx*5+3], word_list[idx*5+4]};
 }
 
 /**
@@ -310,15 +307,15 @@ __device__ int d_count_exclusions(char *word_list, int n, char[] known_state, sh
 __global__ void get_expected_information(char *word_list, char *solution_list, int *n, int *k, float *expected_info) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < *n) {
-        char guess[5] = d_get_word(word_list, idx);
-        short g_letter_counts[26] = d_get_letter_counts(guess);
+        char guess[5]; d_get_word(word_list, idx, guess);
+        short g_letter_counts[26]; d_get_letter_counts(guess, g_letter_counts);
         
         int sum_exclusions = 0;
         // Loops through each potential solution to see how many guesses from word_list would be removed
         // if it were the actual solution
         for (int sol_idx = 0; sol_idx<*k; sol_idx++) {
-            char potential_solution[5] = d_get_word(solution_list, sol_idx);
-            short ps_letter_counts[26] = d_get_letter_counts(potential_solution);
+            char potential_solution[5]; d_get_word(solution_list, sol_idx, potential_solution);
+            short ps_letter_counts[26]; d_get_letter_counts(potential_solution, ps_letter_counts);
 
             char[5] state = {};
             short[26] letter_counts = {};
