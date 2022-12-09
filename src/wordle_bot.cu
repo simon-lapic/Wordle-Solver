@@ -208,7 +208,7 @@ void cull_word_list(std::vector<std::string>& word_list, Knowledge known) {
  * @param word char[5], the word to get info from
  * @return short[26], the array of letter counts
  */
-__device__ void d_get_letter_counts(char[] word, char[] &letter_counts) {
+__device__ void d_get_letter_counts(char* word, short* letter_counts) {
     for (int i = 0; i<5; i++) {
         letter_counts[int(word[i])-97]++;
     }
@@ -221,8 +221,9 @@ __device__ void d_get_letter_counts(char[] word, char[] &letter_counts) {
  * @param idx int, the index of the word to grab
  * @return char[5] 
  */
-__device__ void d_get_word(char* word_list, int idx, char[] &word) {
-    word = {word_list[idx*5], word_list[idx*5+1], word_list[idx*5+2], word_list[idx*5+3], word_list[idx*5+4]};
+__device__ void d_get_word(char* word_list, int idx, char* word) {
+    for (int i = 0; i<5; i++) 
+        word[i] = word_list[idx*5+i];
 }
 
 /**
@@ -237,8 +238,8 @@ __device__ void d_get_word(char* word_list, int idx, char[] &word) {
  * @param learned_state &char[5], the known state, updates with new information
  * @param learned_letters &short[26], the known solution letter counts, updates with new information
  */
-__device__ void d_learn(char[] guess, short[] g_letters, char[] solution, short[] s_letters, 
-                        char[] &learned_state, short[] &learned_letters) {
+__device__ void d_learn(char* guess, short* g_letters, char* solution, short* s_letters, 
+                        char* learned_state, short* learned_letters) {
     for (int i = 0; i<5; i++)
         if (guess[i] == solution[i])
             learned_state[i] = guess[i];
@@ -257,11 +258,11 @@ __device__ void d_learn(char[] guess, short[] g_letters, char[] solution, short[
  * @param known_letter_counts short[26], the known letter counts in the solution
  * @return int, the number of valid guesses
  */
-__device__ int d_count_exclusions(char *word_list, int n, char[] known_state, short[] known_letter_counts) {
+__device__ int d_count_exclusions(char *word_list, int n, char* known_state, short* known_letter_counts) {
     int excluded = 0;
     for (int sol_idx = 0; sol_idx<n; sol_idx++) {
-        char possible_solution[5] = d_get_word(word_list, sol_idx*5);
-        short ps_letter_counts[26] = d_get_letter_counts(possible_solution);
+        char possible_solution[5]; d_get_word(word_list, sol_idx*5, possible_solution);
+        short ps_letter_counts[26]; d_get_letter_counts(possible_solution, ps_letter_counts);
         bool is_valid = true;
 
         // Check the state
@@ -317,8 +318,8 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
             char potential_solution[5]; d_get_word(solution_list, sol_idx, potential_solution);
             short ps_letter_counts[26]; d_get_letter_counts(potential_solution, ps_letter_counts);
 
-            char[5] state = {};
-            short[26] letter_counts = {};
+            char state[5] = {};
+            short letter_counts[26] = {};
             d_learn(guess, g_letter_counts, potential_solution, ps_letter_counts, state, letter_counts);
 
             sum_exclusions += d_count_exclusions(solution_list, *n, state, letter_counts);
