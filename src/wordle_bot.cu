@@ -448,7 +448,7 @@ int main(int argc, char **argv) {
 
     std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
     std::vector<int> dist;
-    for (int i = 0; i<50; i++) {
+    for (int i = 0; i<100; i++) {
         dist.push_back(solve("crate", argv[1], argv[3][0], (argc > 4)));
         if (argc > 4) std::cout << std::endl;
     }
