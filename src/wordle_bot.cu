@@ -308,8 +308,8 @@ __device__ int d_count_exclusions(char *word_list, int n, char* known_state, sho
 __global__ void get_expected_information(char *word_list, char *solution_list, int *n, int *k, float *expected_info) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < *n) {
-        char guess[5]; d_get_word(word_list, idx, guess); printf("Thread %d got the guess\n", idx);
-        short g_letter_counts[26]; d_get_letter_counts(guess, g_letter_counts); printf("Thread %d got the letter counts\n", idx);
+        char guess[5]; d_get_word(word_list, idx, guess); //printf("Thread %d got the guess\n", idx);
+        short g_letter_counts[26]; d_get_letter_counts(guess, g_letter_counts); //printf("Thread %d got the letter counts\n", idx);
         
         int sum_exclusions = 0;
         // Loops through each potential solution to see how many guesses from word_list would be removed
@@ -320,9 +320,9 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
 
             char state[5] = {};
             short letter_counts[26] = {};
-            d_learn(guess, g_letter_counts, potential_solution, ps_letter_counts, state, letter_counts); printf("Thread %d learned\n", idx);
+            d_learn(guess, g_letter_counts, potential_solution, ps_letter_counts, state, letter_counts); //printf("Thread %d learned\n", idx);
 
-            sum_exclusions += d_count_exclusions(solution_list, *n, state, letter_counts); printf("Thread %d counted exclusions\n", idx);
+            sum_exclusions += d_count_exclusions(solution_list, *n, state, letter_counts); //printf("Thread %d counted exclusions\n", idx);
         }
 
         expected_info[idx] = sum_exclusions / *k;
