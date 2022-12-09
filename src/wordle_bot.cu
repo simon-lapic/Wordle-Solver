@@ -445,7 +445,11 @@ int main(int argc, char **argv) {
         std::string guess; std::cin >> guess;
         update_knowledge(test_known, guess, sol);
         print_guess(test_known, guess);
-        std::cout << std::endl;
+        std::cout << "state: ";
+        for (int i = 0; i<5; i++) std::cout << test_known.state[i];
+        std::cout << std::endl << "letter_counts: ";
+        for (int i = 0; i<26; i++) std::cout << char(i+97) << ":" << test_known.letter_counts[i] << ", ";
+        std::cout << "\n\n";
     }
     // END DEBUGGING
 
