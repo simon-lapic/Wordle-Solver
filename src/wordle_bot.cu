@@ -156,10 +156,14 @@ void learn(Knowledge& known, std::string guess, std::string solution) {
         if (g_info.state[i] == s_info.state[i])
             known.state[i] = g_info.state[i];
 
-    for (int i = 0; i < 26; i++)
+    for (int i = 0; i < 26; i++) {
         if (known.letter_counts[i]<s_info.letter_counts[i] && known.letter_counts[i]<g_info.letter_counts[i])
             known.letter_counts[i] = (g_info.letter_counts[i]<s_info.letter_counts[i])?
                                      (g_info.letter_counts[i]):(s_info.letter_counts[i]);
+        if (s_info.letter_counts[i] == 0 && g_info.letter_counts[i] > 0)
+            known.letter_counts[i] = -1;
+    }
+        
 }
 
 /**
@@ -244,9 +248,12 @@ __device__ void d_learn(char* guess, short* g_letters, char* solution, short* s_
         if (guess[i] == solution[i])
             learned_state[i] = guess[i];
 
-    for (int i = 0; i < 26; i++)
+    for (int i = 0; i < 26; i++) {
         if (learned_letters[i]<s_letters[i] && learned_letters[i]<g_letters[i])
             learned_letters[i] = (g_letters[i]<s_letters[i])?(g_letters[i]):(s_letters[i]);
+        if (s_letters[i] == 0 && g_letters[i] > 0)
+            learned_letters[i] = -1;
+    }
 }
 
 /**
@@ -486,8 +493,8 @@ int main(int argc, char **argv) {
 
     std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
     std::vector<int> dist;
-    for (int i = 0; i<100; i++) {
-        dist.push_back(solve("crate", argv[1], argv[3][0], (argc > 4)));
+    for (int i = 0; i<atoi(argv[2]); i++) {
+        dist.push_back(solve(sols.at(i), argv[1], argv[3][0], (argc > 4)));
         if (argc > 4) std::cout << std::endl;
     }
     print_dist(dist);
