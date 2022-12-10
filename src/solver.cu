@@ -23,6 +23,16 @@ struct Knowledge {
 };
 
 /**
+ * @brief Stores data about a particular call of the solve() function
+ */
+struct GuessResults {
+    std::string solution;
+    float seconds;
+    bool solved;
+    int num_guesses;
+}
+
+/**
  * @brief Opens a list of words stored in a file (line-separated) and returns it as an array
  * 
  * @param path std::string, the path to the file to open
@@ -43,20 +53,7 @@ std::vector<std::string> get_word_list(std::string path, int count=256) {
     return output;
 }
 
-/**
- * @brief Determines whether or not a string is a valid word for the wordle. A word is considered valid if it has five
- * characters, and each character is a letter.
- * 
- * @param word std::string, the word to validate
- * @return true if word is valid, otherwise false
- */
-bool validate(std::string word) {
-    bool valid = word.size() == 5;
-    for (char c : word)
-        if (!(int(c) >= 97 && int(c) <= 122)) //Confirms that the character is one of the ascii lowercase letters
-            valid = false;
-    return valid;
-}
+void write_results(std::string path, GuessResults results)
 
 /**
  * @brief Prints a guess using the appropriate colors based on what information is known. A letter appears yellow if it appears in
@@ -407,112 +404,72 @@ std::string make_random_guess(std::vector<std::string> word_list) {
  * 
  * @param word std::string, the solution to solve for
  * @param path std::string, the file path for a list of words to use as the possible guesses
- * @param t char, the method to solve it with. Should be 'r' for random or 'i' to use expected information
  * @return int, the number of guesses it took to solve, or -1 if it failed
  */
-int solve(std::string word, std::string path, char t, bool print) {
+void solve(std::string word, std::string path, int n, GuessResults &results) {
+    float total_time = 0.0;
     bool solved = false;
     short attempts = 0;
     Knowledge known = {};
-    std::vector<std::string> words = get_word_list(path, 12972); // 12972
+    std::vector<std::string> words = get_word_list(path, n);
 
-    if (t == 'r') {
-        if (print) std::cout << "Guessing '" << word << "' with random guesses..." << std::endl;
-        while (attempts < 6 && !solved) {
-            int num_remaining = words.size();
-            auto start = std::chrono::high_resolution_clock::now();
-            std::string guess = make_random_guess(words);
-            auto stop = std::chrono::high_resolution_clock::now();
-            auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-            learn(known, guess, word);
-            int guess_idx = 0;
-            for (int i = 0; i<words.size(); i++)
-                if (words[i] == guess) {
-                    guess_idx = i;
-                    break;
-                }
-            words.erase(words.begin() + guess_idx);
-            cull_word_list(words, known);
-            if (print) {
-                std::cout << "     "; print_guess(known, guess); 
-                std::cout << "   (out of " << num_remaining << " in " << dur.count()/1000 << " seconds)\n";
-            }
-            attempts++;
-            if (guess == word)
-                solved = true;
-        }
+    std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
+    while (attempts < 6 && !solved) {
+        int num_remaining = words.size();
 
-        if (print) {
-            std::string message = (solved)?("Solved!"):("Failed!");
-            std::cout << message << std::endl;
-        }
-    } else if (t == 'i') {
-        if (print) std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
-        while (attempts < 6 && !solved) {
-            int num_remaining = words.size();
-            auto start = std::chrono::high_resolution_clock::now();
-            std::string guess = make_informed_guess(words);
-            auto stop = std::chrono::high_resolution_clock::now();
-            auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-            learn(known, guess, word);
-            int guess_idx = 0;
-            for (int i = 0; i<words.size(); i++)
-                if (words[i] == guess) {
-                    guess_idx = i;
-                    break;
-                }
-            words.erase(words.begin() + guess_idx);
-            cull_word_list(words, known);
-            if (print) {
-                std::cout << "     "; print_guess(known, guess); 
-                std::cout << "   (out of " << num_remaining << " in " << dur.count()/1000 << " seconds)\n";
+        auto start = std::chrono::high_resolution_clock::now();
+        std::string guess = make_informed_guess(words);
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+        total_time += float(dur.count()/1000);
+
+        learn(known, guess, word);
+        int guess_idx = 0;
+        for (int i = 0; i<words.size(); i++)
+            if (words[i] == guess) {
+                guess_idx = i;
+                break;
             }
-            attempts++;
-            if (guess == word)
-                solved = true;
-        }
-        if (print) {
-            std::string message = (solved)?("Solved!"):("Failed!");
-            std::cout << message << std::endl;
-        }
-    } else {
-        std::cout << "Invalid method type. Use 'r' for random or 'i' to use expected information." << std::endl;
+        words.erase(words.begin() + guess_idx);
+        cull_word_list(words, known);
+
+        std::cout << "     "; 
+        print_guess(known, guess); 
+        std::cout << "   (out of " << num_remaining << " in " << float(dur.count()/1000) << " seconds)\n";
+
+        attempts++;
+        if (guess == word)
+            solved = true;
     }
+        
+    std::string message = (solved)?("Solved!"):("Failed!");
+    std::cout << message << std::endl;
 
-    return (solved)?(attempts):(-1);
+    results.num_guesses = attempts;
+    results.solved = solved;
+    results.seconds = total_time;
+
 }
 
 int main(int argc, char **argv) {
+    if (argc < 3 || argc > 4) {
+        std::cout << "Incorret Usage: ./solver [solution] [word list path] [size] <output file path>";
+        return 0;
+    } 
+    std::string solution = argv[1];
+    std::string path = argv[2];
+    int num = atoi(argv[3]);
+    std::string output = ""; if (argc>3) output = argv[4];
+    
     std::srand(time(0));
     printf("\n");
 
-    // DEBUGGING
+    GuessResults results = {}; results.solution = solution;
+    solve(solution, path, num, results);
+    if (output != "") 
+        write_results(output, results);
 
-    // Knowledge test_known = {};
-    // std::string sol = "crate";
-    // while (true) {
-    //     std::string guess; std::cin >> guess;
-    //     learn(test_known, guess, sol);
-    //     print_guess(test_known, guess);
-    //     std::cout << "state: ";
-    //     for (int i = 0; i<5; i++) std::cout << test_known.state[i];
-    //     std::cout << std::endl << "letter_counts: ";
-    //     for (int i = 0; i<26; i++) std::cout << char(i+97) << ":" << test_known.letter_counts[i] << ", ";
-    //     std::cout << "\n\n";
-    // }
-
-    std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
-    std::vector<int> dist;
-    for (int i = 0; i<atoi(argv[2]); i++) {
-        int index = std::rand() % sols.size();
-        dist.push_back(solve(sols.at(index), argv[1], argv[3][0], (argc > 4)));
-        sols.erase(sols.begin() + index);
-        if (argc > 4) std::cout << std::endl;
-    }
-    print_dist(dist);
-
-    // END DEBUGGING
-    
     printf("\n");
+
     return 0;
 }
