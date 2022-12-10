@@ -504,7 +504,7 @@ int main(int argc, char **argv) {
     std::vector<std::string> sols = get_word_list(argv[1], atoi(argv[2]));
     std::vector<int> dist;
     for (int i = 0; i<atoi(argv[2]); i++) {
-        int index = std::rand() % word_list.size();
+        int index = std::rand() % sols.size();
         dist.push_back(solve(sols.at(index), argv[1], argv[3][0], (argc > 4)));
         sols.erase(index);
         if (argc > 4) std::cout << std::endl;
