@@ -506,7 +506,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i<atoi(argv[2]); i++) {
         int index = std::rand() % sols.size();
         dist.push_back(solve(sols.at(index), argv[1], argv[3][0], (argc > 4)));
-        sols.erase(index);
+        sols.erase(sols.begin() + index);
         if (argc > 4) std::cout << std::endl;
     }
     print_dist(dist);
