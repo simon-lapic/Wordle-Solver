@@ -378,7 +378,7 @@ std::string make_informed_guess(std::vector<std::string> word_list) {
     // Interpret data
     int max_idx = 0;
     for (int i = 0; i<size; i++) 
-        if (info[i] > info[max_idx]) 
+        if (info[i] >= info[max_idx]) 
             max_idx = i;
 
     // Free memory
