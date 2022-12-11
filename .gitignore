@@ -6,3 +6,4 @@ __pycache__
 attempt-*
 .vscode
 build
+output.csv

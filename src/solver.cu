@@ -53,7 +53,14 @@ std::vector<std::string> get_word_list(std::string path, int count=256) {
     return output;
 }
 
-void write_results(std::string path, GuessResults results)
+void write_results(std::string path, GuessResults results) {
+    std::fstream fout;
+    fout.open(path, std::ios::out | std::ios::app);
+    fout << results.solution << ","
+         << results.solved << ","
+         << results.num_guesses << ","
+         << results.seconds << "\n";
+}
 
 /**
  * @brief Prints a guess using the appropriate colors based on what information is known. A letter appears yellow if it appears in
@@ -453,7 +460,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
 
 int main(int argc, char **argv) {
     if (argc < 3 || argc > 4) {
-        std::cout << "Incorret Usage: ./solver [solution] [word list path] [size] <output file path>";
+        std::cout << "Incorrect Usage: ./solver [solution] [word list path] [size] <output file path>";
         return 0;
     } 
     std::string solution = argv[1];
@@ -464,10 +471,19 @@ int main(int argc, char **argv) {
     std::srand(time(0));
     printf("\n");
 
-    GuessResults results = {}; results.solution = solution;
-    solve(solution, path, num, results);
-    if (output != "") 
-        write_results(output, results);
+    std::vector<std::string> test_solutions = {
+        "knock", "braid", "infer", "joust", "amber", 
+        "woken", "adore", "torso", "chafe", "eject", 
+        "study", "undue", "tepid", "happy", "clean", 
+        "itchy", "feast", "drive", "prime", "axiom"
+    };
+
+    for (std::string word : test_solutions) {
+        GuessResults results = {}; results.solution = solution;
+        solve(word, path, num, results);
+        if (output != "") 
+            write_results(output, results);
+    }
 
     printf("\n");
 
