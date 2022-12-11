@@ -39,7 +39,7 @@ struct GuessResults {
  * @param count int, the number of words to extract from the file (256 or the number of items in the file by default)
  * @return std::string*, the list of words extracted from the file
  */
-std::vector<std::string> get_word_list(std::string path, int count=256) {
+std::vector<std::string> get_word_list(std::string path, int count) {
     std::vector<std::string> output;
     output.reserve(count);
 
