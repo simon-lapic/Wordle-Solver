@@ -429,7 +429,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
         std::string guess = make_informed_guess(words);
         auto stop = std::chrono::high_resolution_clock::now();
         auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-        total_time += float(dur.count()/1000);
+        total_time += float(dur.count())/float(1000);
 
         learn(known, guess, word);
         int guess_idx = 0;
@@ -443,7 +443,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
 
         std::cout << "     "; 
         print_guess(known, guess); 
-        std::cout << "   (out of " << num_remaining << " in " << float(dur.count()/1000) << " seconds)\n";
+        std::cout << "   (out of " << num_remaining << " in " << float(dur.count())/float(1000) << " seconds)\n";
 
         attempts++;
         if (guess == word)
@@ -487,7 +487,7 @@ int main(int argc, char **argv) {
         solve(word, path, num, results);
         if (output != "") write_results(output, results);
     }
-    //TESTING cat ../data/output.csv
+    //TESTING
 
     printf("\n");
 
