@@ -54,13 +54,13 @@ std::vector<std::string> get_word_list(std::string path, int count) {
 }
 
 void write_results(std::string path, GuessResults results) {
-    std::fstream fout;
-    fout.open(path, std::ios::out | std::ios::app);
-    fout << results.solution << ","
+    std::ofstream file;
+    file.open(path, std::ios::app);
+    file << results.solution << ","
          << results.solved << ","
          << results.num_guesses << ","
          << results.seconds << "\n";
-    fout.close();
+    file.close();
 }
 
 /**
@@ -473,19 +473,26 @@ int main(int argc, char **argv) {
     std::srand(time(0));
     printf("\n");
 
-    std::vector<std::string> test_solutions = {
-        "knock", "braid", "infer", "joust", "amber", 
-        "woken", "adore", "torso", "chafe", "eject", 
-        "study", "undue", "tepid", "happy", "clean", 
-        "itchy", "feast", "drive", "prime", "axiom"
-    };
+    GuessResults results = {}; results.solution = solution;
+    solve(word, path, num, results);
+    if (output != "") 
+        write_results(output, results);
 
-    for (std::string word : test_solutions) {
-        GuessResults results = {}; results.solution = solution;
-        solve(word, path, num, results);
-        if (output != "") 
-            write_results(output, results);
-    }
+    // TESTING
+    // std::vector<std::string> test_solutions = {
+    //     "knock", "braid", "infer", "joust", "amber", 
+    //     "woken", "adore", "torso", "chafe", "eject", 
+    //     "study", "undue", "tepid", "happy", "clean", 
+    //     "itchy", "feast", "drive", "prime", "axiom"
+    // };
+
+    // for (std::string word : test_solutions) {
+    //     GuessResults results = {}; results.solution = word;
+    //     solve(word, path, num, results);
+    //     if (output != "") 
+    //         write_results(output, results);
+    // }
+    //TESTING
 
     printf("\n");
 
