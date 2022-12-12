@@ -30,7 +30,7 @@ struct GuessResults {
     float seconds;
     bool solved;
     int num_guesses;
-}
+};
 
 /**
  * @brief Opens a list of words stored in a file (line-separated) and returns it as an array
