@@ -487,7 +487,7 @@ int main(int argc, char **argv) {
         solve(word, path, num, results);
         if (output != "") write_results(output, results);
     }
-    //TESTING
+    //TESTING cat ../data/output.csv
 
     printf("\n");
 
