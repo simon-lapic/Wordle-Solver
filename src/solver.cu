@@ -479,7 +479,7 @@ int main(int argc, char **argv) {
     //     write_results(output, results);
 
     // TESTING
-    std::vector<std::string> test_solutions = get_word_list("../data/solutions_list.txt");
+    std::vector<std::string> test_solutions = get_word_list("../data/solutions_list.txt", 2315);
 
     for (int i = atoi(argv[5]); i<atoi(argv[6]); i++) {
         std::string word = test_solutions[i];
