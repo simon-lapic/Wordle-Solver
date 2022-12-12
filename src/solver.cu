@@ -335,7 +335,7 @@ __global__ void get_expected_information(char *word_list, char *solution_list, i
             sum_exclusions += d_count_exclusions(solution_list, *n, state, letter_counts); //printf("Thread %d counted exclusions\n", idx);
         }
 
-        expected_info[idx] = float(sum_exclusions / *k);
+        expected_info[idx] = float(sum_exclusions) / float(*k);
     }
 }
 
