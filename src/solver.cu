@@ -474,7 +474,7 @@ int main(int argc, char **argv) {
     printf("\n");
 
     GuessResults results = {}; results.solution = solution;
-    solve(word, path, num, results);
+    solve(solution, path, num, results);
     if (output != "") 
         write_results(output, results);
 
