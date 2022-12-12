@@ -459,8 +459,9 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 4 || argc > 5) {
+    if (argc != 4 && argc != 5) {
         std::cout << "Incorrect Usage: ./solver [solution] [word list path] [size] <output file path>";
+        printf("\n");
         return 0;
     } 
     std::string solution = argv[1];
