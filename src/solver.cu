@@ -444,7 +444,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
         int num_remaining = words.size();
 
         auto start = std::chrono::high_resolution_clock::now();
-        std::string guess = make_random_guess(words);
+        std::string guess = make_informed_guess(words);
         auto stop = std::chrono::high_resolution_clock::now();
         auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
         total_time += float(dur.count())/float(1000);
@@ -478,7 +478,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 4 && argc != 5 && argc != 7) {
+    if (argc != 4 && argc != 5) {
         std::cout << "Incorrect Usage: ./solver [solution] [word list path] [size] <output file path>";
         printf("\n");
         return 0;
@@ -491,21 +491,10 @@ int main(int argc, char **argv) {
     std::srand(time(0));
     printf("\n");
 
-    // GuessResults results = {}; results.solution = solution;
-    // solve(solution, path, num, results);
-    // if (output != "") 
-    //     write_results(output, results);
-
-    // TESTING
-    std::vector<std::string> test_solutions = get_word_list("../data/solutions_list.txt", 2315);
-
-    for (int i = atoi(argv[5]); i<atoi(argv[6]); i++) {
-        std::string word = test_solutions[i];
-        GuessResults results = {}; results.solution = word;
-        solve(word, path, num, results);
-        if (output != "") write_results(output, results);
-    }
-    //TESTING
+    GuessResults results = {}; results.solution = solution;
+    solve(solution, path, num, results);
+    if (output != "") 
+        write_results(output, results);
 
     printf("\n");
 
