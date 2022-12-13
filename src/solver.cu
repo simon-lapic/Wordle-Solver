@@ -444,7 +444,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
         int num_remaining = words.size();
 
         auto start = std::chrono::high_resolution_clock::now();
-        std::string guess = make_informed_guess(words);
+        std::string guess = make_random_guess(words);
         auto stop = std::chrono::high_resolution_clock::now();
         auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
         total_time += float(dur.count())/float(1000);

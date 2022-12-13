@@ -18,3 +18,5 @@ To run the program normally, use the following command in the `build/` directory
 ./solver [solution] [word list path] [size] <output file path>
 ```
 Where `[solution]` is a 5-letter word contained in a .txt file at `[word list path]`. The word list in the file should have each word separated by line. There is a `wordle_words.txt` file in `data/` containing all 12,972 valid guesses that were hard-coded into the original Wordle game website, as well as the `solutions_list.txt` file containing the similarly hard-coded 2,315 original daily solutions. The `[size]` arg should be the number of words, in order, to use from the provided word list. Optionally, an `<output file path>` can be specified for a .csv file so that the results are stored on a new line in the file
+
+### Known Issues
