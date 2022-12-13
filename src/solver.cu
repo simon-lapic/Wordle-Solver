@@ -33,6 +33,24 @@ struct GuessResults {
 };
 
 /**
+ * @brief Randomizes a list of words
+ * 
+ * @param list std::vector<std::string>, a list of words
+ * @return std::vector<std::string>, the list, randomized
+ */
+std::vector<std::string> randomize_list(std::vector<std::string> list) {
+    std::vector<std::string> randomized = {};
+
+    while (list.size() > 0) {
+        int i = std::rand() % list.size();
+        randomized.push_back(list[i]);
+        list.erase(list.begin() + i);
+    }
+
+    return randomized;
+}
+
+/**
  * @brief Opens a list of words stored in a file (line-separated) and returns it as an array
  * 
  * @param path std::string, the path to the file to open
@@ -419,7 +437,7 @@ void solve(std::string word, std::string path, int n, GuessResults &results) {
     bool solved = false;
     short attempts = 0;
     Knowledge known = {};
-    std::vector<std::string> words = get_word_list(path, n);
+    std::vector<std::string> words = randomize_list(get_word_list(path, n));
 
     std::cout << "Guessing '" << word << "' with expected information..." << std::endl;
     while (attempts < 6 && !solved) {
